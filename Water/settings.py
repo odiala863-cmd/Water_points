@@ -1,6 +1,6 @@
 """
 Django settings for Water project.
-Production-ready with Render PostgreSQL + Local Spatialite switching
+Production-ready for Render PostgreSQL + Local Spatialite
 """
 
 from pathlib import Path
@@ -14,18 +14,23 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --------------------------------------------------
-# LOAD ENV VARIABLES
+# LOAD ENV VARIABLES (LOCAL ONLY)
 # --------------------------------------------------
-load_dotenv(os.path.join(BASE_DIR, ".env"))
+env_path = os.path.join(BASE_DIR, ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
 
 # --------------------------------------------------
 # SECURITY
 # --------------------------------------------------
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-dev-secret-key")
 
-DEBUG = os.getenv("DJANGO_DEBUG") == "True"
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
+ALLOWED_HOSTS = os.getenv(
+    "DJANGO_ALLOWED_HOSTS",
+    "localhost,127.0.0.1"
+).split(",")
 
 # --------------------------------------------------
 # APPLICATIONS
@@ -72,7 +77,7 @@ ROOT_URLCONF = 'Water.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -89,7 +94,7 @@ WSGI_APPLICATION = 'Water.wsgi.application'
 # --------------------------------------------------
 # DATABASE SWITCHING
 # --------------------------------------------------
-USE_PROD_DB = os.getenv("USE_PROD_DB") == "True"
+USE_PROD_DB = os.getenv("USE_PROD_DB", "False") == "True"
 
 if USE_PROD_DB:
     DATABASES = {
@@ -99,20 +104,21 @@ if USE_PROD_DB:
             ssl_require=True
         )
     }
-    # Add POSTGIS engine for Render PostgreSQL
-    DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
+    DATABASES["default"]["ENGINE"] = "django.contrib.gis.db.backends.postgis"
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': os.getenv("LOCAL_DB_ENGINE"),
-            'NAME': BASE_DIR / os.getenv("LOCAL_DB_NAME"),
+        "default": {
+            "ENGINE": os.getenv("LOCAL_DB_ENGINE", "django.db.backends.sqlite3"),
+            "NAME": BASE_DIR / os.getenv("LOCAL_DB_NAME", "db.sqlite3"),
         }
     }
 
 # --------------------------------------------------
 # SPATIALITE (LOCAL ONLY)
 # --------------------------------------------------
-SPATIALITE_LIBRARY_PATH = os.getenv("SPATIALITE_LIBRARY_PATH")
+SPATIALITE_LIBRARY_PATH = None
+if not USE_PROD_DB:
+    SPATIALITE_LIBRARY_PATH = os.getenv("SPATIALITE_LIBRARY_PATH")
 
 # --------------------------------------------------
 # PASSWORD VALIDATION
@@ -133,14 +139,21 @@ USE_I18N = True
 USE_TZ = True
 
 # --------------------------------------------------
-# STATIC FILES (PRODUCTION SAFE)
+# STATIC FILES (RENDER SAFE)
 # --------------------------------------------------
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+STATICFILES_DIRS = []
+static_dir = os.path.join(BASE_DIR, "static")
+if os.path.exists(static_dir):
+    STATICFILES_DIRS.append(static_dir)
+
+# --------------------------------------------------
+# MEDIA FILES (OPTIONAL)
+# --------------------------------------------------
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # --------------------------------------------------
 # DEFAULT PRIMARY KEY
@@ -162,6 +175,6 @@ REST_FRAMEWORK = {
 }
 
 # --------------------------------------------------
-# CORS (Adjust later if needed)
+# CORS
 # --------------------------------------------------
 CORS_ALLOW_ALL_ORIGINS = True
