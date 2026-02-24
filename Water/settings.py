@@ -1,6 +1,7 @@
 """
 Django settings for Water project.
 Production-ready optimized version with comprehensive features.
+Redis has been completely disabled for Render free tier compatibility.
 """
 
 from pathlib import Path
@@ -47,6 +48,13 @@ ALLOWED_HOSTS = os.getenv(
     "DJANGO_ALLOWED_HOSTS",
     "localhost,127.0.0.1,.onrender.com" if not DEBUG else "localhost,127.0.0.1"
 ).split(",")
+
+# Add Render's default domain if present
+render_domain = os.getenv("RENDER_EXTERNAL_URL")
+if render_domain:
+    render_domain = render_domain.replace("https://", "").replace("http://", "")
+    if render_domain not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(render_domain)
 
 # Security middleware settings
 SECURE_SSL_REDIRECT = False
@@ -105,8 +113,8 @@ THIRD_PARTY_APPS = [
     'corsheaders',
     'drf_yasg',
     
-    # Performance
-    'cacheops',
+    # Performance - Redis dependent apps DISABLED
+    # 'cacheops',  # DISABLED - Requires Redis
     'django_prometheus',
     
     # Admin enhancements
@@ -181,7 +189,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Water.wsgi.application'
 
 # ============================================
-# DATABASE CONFIGURATION - FIXED VERSION
+# DATABASE CONFIGURATION
 # ============================================
 USE_PROD_DB = os.getenv("USE_PROD_DB", "False") == "True"
 
@@ -255,54 +263,41 @@ if not USE_PROD_DB:
     SPATIALITE_LIBRARY_PATH = os.getenv("SPATIALITE_LIBRARY_PATH", "mod_spatialite")
 
 # ============================================
-# CACHE CONFIGURATION
+# CACHE CONFIGURATION - REDIS DISABLED
+# Using database and local memory cache instead
 # ============================================
+
+# Cache configuration without Redis
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'water-points-cache',
+        'TIMEOUT': 60 * 15,  # 15 minutes
         'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
-            'CONNECTION_POOL_CLASS_KWARGS': {
-                'max_connections': 50,
-                'timeout': 20,
-            },
-            'MAX_CONNECTIONS': 1000,
-            'PICKLE_VERSION': -1,
+            'MAX_ENTRIES': 1000,
+            'CULL_FREQUENCY': 3,
         },
         'KEY_PREFIX': 'water',
-        'TIMEOUT': 60 * 15,  # 15 minutes
-    },
-    'session': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': os.getenv('REDIS_URL', 'redis://localhost:6379/1'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-        'KEY_PREFIX': 'session',
-        'TIMEOUT': 60 * 60 * 24,  # 24 hours
     }
 }
 
-# Cache middleware
-CACHE_MIDDLEWARE_ALIAS = 'default'
-CACHE_MIDDLEWARE_SECONDS = 300
-CACHE_MIDDLEWARE_KEY_PREFIX = 'water'
+# Cache middleware - disabled since no Redis
+CACHE_MIDDLEWARE_ALIAS = None
+CACHE_MIDDLEWARE_SECONDS = 0
+CACHE_MIDDLEWARE_KEY_PREFIX = None
 
-# Cacheops automatic query caching
-CACHEOPS_REDIS = os.getenv('REDIS_URL', 'redis://localhost:6379/2')
-CACHEOPS_DEFAULTS = {'timeout': 60 * 15}
-CACHEOPS = {
-    'waterpoints.*': {'ops': 'all', 'timeout': 60 * 15},
-    'auth.user': {'ops': 'get', 'timeout': 60 * 60},
-}
+# Cacheops - COMPLETELY DISABLED
+# No Redis configuration for cacheops
+CACHEOPS_ENABLED = False
+CACHEOPS_REDIS = None
+CACHEOPS = {}  # Empty dict disables all caching
 
-# Session configuration
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'session'
+# Session configuration - Using database backend instead of cache
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Database-based sessions
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 7 days
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
 
 # ============================================
 # REST FRAMEWORK CONFIGURATION
@@ -441,27 +436,19 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
-        'celery': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
     },
 }
 
 # ============================================
-# CELERY CONFIGURATION
+# CELERY CONFIGURATION - DISABLED (Requires Redis)
 # ============================================
-CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/3')
-CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/4')
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+# Celery is disabled as it requires Redis/Message Broker
+# Set Celery to run tasks eagerly (synchronously) if any tasks are called
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_BROKER_URL = None
+CELERY_RESULT_BACKEND = None
+CELERY_BEAT_SCHEDULER = None
 
 # ============================================
 # STORAGE CONFIGURATION
@@ -520,7 +507,7 @@ PAGINATION_SETTINGS = {
 # API SETTINGS
 # ============================================
 API_SETTINGS = {
-    'CACHE_TIMEOUT': 60 * 15,  # 15 minutes
+    'CACHE_TIMEOUT': 60 * 15,  # 15 minutes (will use LocMemCache)
     'ANALYTICS_CACHE_TIMEOUT': 60 * 30,  # 30 minutes
     'HEAVY_QUERY_TIMEOUT': 30,  # seconds
     'MAX_EXPORT_ROWS': 50000,
@@ -577,15 +564,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 if os.getenv('SENTRY_DSN') and not DEBUG:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
-    from sentry_sdk.integrations.celery import CeleryIntegration
-    from sentry_sdk.integrations.redis import RedisIntegration
     
+    # Redis integration removed as Redis is disabled
     sentry_sdk.init(
         dsn=os.getenv('SENTRY_DSN'),
         integrations=[
             DjangoIntegration(),
-            CeleryIntegration(),
-            RedisIntegration(),
         ],
         traces_sample_rate=0.1,
         send_default_pii=False,
@@ -597,9 +581,9 @@ if os.getenv('SENTRY_DSN') and not DEBUG:
 # ============================================
 HEALTH_CHECKS = {
     'database': True,
-    'cache': True,
+    'cache': False,  # Disabled since no Redis
     'storage': True,
-    'celery': True,
+    'celery': False,  # Disabled
 }
 
 # ============================================
@@ -625,3 +609,14 @@ if DEBUG:
     SILKY_META = True
     SILKY_AUTHENTICATION = True
     SILKY_AUTHORISATION = True
+
+# ============================================
+# PRINT CONFIGURATION STATUS (for debugging)
+# ============================================
+print(f"\n{'='*50}")
+print(f"Environment: {ENVIRONMENT}")
+print(f"DEBUG: {DEBUG}")
+print(f"Database: {'PostgreSQL' if USE_PROD_DB else 'SQLite'}")
+print(f"Redis: DISABLED (using LocMemCache and DB sessions)")
+print(f"Celery: DISABLED (running tasks synchronously)")
+print(f"{'='*50}\n")
