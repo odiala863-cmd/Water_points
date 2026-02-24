@@ -1,0 +1,105 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+
+# ==============================
+# Virtual Environment
+# ==============================
+venv/
+env/
+ENV/
+.venv/
+*.env
+
+# ==============================
+# Django
+# ==============================
+*.log
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+
+# ==============================
+# Secrets & Environment Variables
+# ==============================
+.env
+.env.*
+*.key
+*.pem
+*.crt
+*.secret
+
+# ==============================
+# Geospatial / GIS Data (IMPORTANT)
+# ==============================
+data/
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.qix
+*.sbn
+*.sbx
+*.gpkg
+*.tif
+*.tiff
+*.vrt
+*.geojson
+*.csv
+*.kml
+*.kmz
+
+# ==============================
+# PostgreSQL / PostGIS Dumps
+# ==============================
+*.sql
+*.dump
+*.bak
+*.backup
+
+# ==============================
+# IDE / Editor
+# ==============================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# ==============================
+# OS Files
+# ==============================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==============================
+# Jupyter / Data Science
+# ==============================
+.ipynb_checkpoints/
+*.ipynb
+*.rds
+*.Rhistory
+*.RData
+
+# ==============================
+# Logs & Temp
+# ==============================
+*.tmp
+*.temp
+*.cache
+core.*

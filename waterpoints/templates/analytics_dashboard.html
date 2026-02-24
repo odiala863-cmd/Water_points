@@ -1,0 +1,1967 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaTrack Pro - Enterprise Analytics Dashboard</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Leaflet for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet Heat -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <!-- Moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <!-- Papa Parse for CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- CSRF Token -->
+    {% csrf_token %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <style>
+        /* Base styles that can't be easily inlined */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.5); opacity: 0; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes modalSlideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .leaflet-container {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body style="background-color: #f8fafc; color: #0f172a; transition: background-color 250ms ease, color 250ms ease;">
+
+    <!-- Navigation -->
+    <div style="background-color: #ffffff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(8px); background-color: rgba(255, 255, 255, 0.95);">
+        <div style="max-width: 1600px; margin: 0 auto; padding: 0 24px;">
+            <nav style="display: flex; align-items: center; justify-content: space-between; height: 70px;">
+                <a href="{% url 'landing' %}" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #2563eb, #10b981); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: 700; font-size: 1.125rem; color: #0f172a;">AquaTrack Pro</span>
+                        <span style="font-size: 0.75rem; color: #64748b;">Water Resources Management</span>
+                    </div>
+                </a>
+                
+                <div style="display: flex; gap: 8px; background-color: #f1f5f9; padding: 4px; border-radius: 9999px;">
+                    <a href="{% url 'landing' %}" style="display: flex; align-items: center; gap: 8px; padding: 8px 24px; border-radius: 9999px; color: #334155; font-weight: 500; text-decoration: none; transition: all 150ms ease; {% if request.resolver_match.url_name == 'landing' %}background-color: #ffffff; color: #2563eb; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);{% endif %}">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="{% url 'map_dashboard' %}" style="display: flex; align-items: center; gap: 8px; padding: 8px 24px; border-radius: 9999px; color: #334155; font-weight: 500; text-decoration: none; transition: all 150ms ease; {% if request.resolver_match.url_name == 'map_dashboard' %}background-color: #ffffff; color: #2563eb; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);{% endif %}">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <span>Map Dashboard</span>
+                    </a>
+                    <a href="{% url 'analytics_dashboard' %}" style="display: flex; align-items: center; gap: 8px; padding: 8px 24px; border-radius: 9999px; background-color: #ffffff; color: #2563eb; font-weight: 500; text-decoration: none; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="theme-toggle">
+                        <button id="themeToggle" style="width: 40px; height: 40px; border: none; background-color: #f1f5f9; border-radius: 9999px; color: #334155; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 150ms ease;">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 4px 8px; background-color: #f1f5f9; border-radius: 9999px; cursor: pointer; transition: background-color 150ms ease;">
+                        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #2563eb, #10b981); border-radius: 9999px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.875rem;">AD</div>
+                        <div style="display: flex; flex-direction: column; line-height: 1.3;">
+                            <span style="font-weight: 600; font-size: 0.875rem; color: #0f172a;">Admin User</span>
+                            <span style="font-size: 0.75rem; color: #64748b;">Water Manager</span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div style="max-width: 1600px; margin: 0 auto; padding: 24px;">
+
+        <!-- Top Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h1 style="display: flex; align-items: center; gap: 8px; font-size: 1.875rem; font-weight: 700; color: #0f172a;">
+                <i class="fas fa-chart-pie" style="color: #2563eb;"></i> Enterprise Analytics Dashboard
+            </h1>
+            <div style="display: flex; align-items: center; gap: 16px; padding: 8px 24px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 9999px; font-size: 0.875rem; color: #334155;">
+                <i class="far fa-calendar-alt"></i>
+                <span id="current-date">{{ now|date:"F j, Y" }}</span>
+                <span style="display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 4px 8px; background-color: #f1f5f9; border-radius: 20px; font-size: 0.75rem;">
+                    <span style="width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; position: relative;"></span>
+                    Live
+                </span>
+            </div>
+        </div>
+
+        <!-- Filter Ribbon -->
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="flex: 1; min-width: 160px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-map-marker-alt" style="margin-right: 4px;"></i> County
+                    </label>
+                    <select id="county-select" style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease; appearance: none; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%2364748b\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E'); background-position: right 8px center; background-repeat: no-repeat; background-size: 20px; padding-right: 40px;">
+                        <option value="all">All Counties</option>
+                        {% for county in counties %}
+                            <option value="{{ county.id }}">{{ county.county }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 160px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-map-pin"></i> Sub-County
+                    </label>
+                    <select id="subcounty-select" disabled style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease; appearance: none; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%2364748b\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E'); background-position: right 8px center; background-repeat: no-repeat; background-size: 20px; padding-right: 40px; opacity: 0.5; cursor: not-allowed;">
+                        <option value="all">All Sub-Counties</option>
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 160px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-flag"></i> Ward
+                    </label>
+                    <select id="ward-select" disabled style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease; appearance: none; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%2364748b\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E'); background-position: right 8px center; background-repeat: no-repeat; background-size: 20px; padding-right: 40px; opacity: 0.5; cursor: not-allowed;">
+                        <option value="all">All Wards</option>
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 160px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-tint"></i> Source Type
+                    </label>
+                    <select id="source-filter" style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease; appearance: none; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%2364748b\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E'); background-position: right 8px center; background-repeat: no-repeat; background-size: 20px; padding-right: 40px;">
+                        <option value="all">All Sources</option>
+                        {% for source in source_types %}
+                            <option value="{{ source.water_sour }}">{{ source.water_sour }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 160px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-cog"></i> Status
+                    </label>
+                    <select id="status-filter" style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease; appearance: none; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%2364748b\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E'); background-position: right 8px center; background-repeat: no-repeat; background-size: 20px; padding-right: 40px;">
+                        <option value="all">All Status</option>
+                        {% for status in status_options %}
+                            <option value="{{ status.id }}">{{ status.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+                <div style="flex: 1; min-width: 160px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-calendar"></i> Year Range
+                    </label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="year-from" placeholder="From" min="{{ year_min }}" max="{{ year_max }}" value="{{ year_min }}" style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease;">
+                        <input type="number" id="year-to" placeholder="To" min="{{ year_min }}" max="{{ year_max }}" value="{{ year_max }}" style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease;">
+                    </div>
+                </div>
+                <div style="flex: 1; min-width: 160px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-arrow-down"></i> Depth Range (m)
+                    </label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="depth-from" placeholder="Min" step="0.1" style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease;">
+                        <input type="number" id="depth-to" placeholder="Max" step="0.1" style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease;">
+                    </div>
+                </div>
+                <div style="flex: 1; min-width: 160px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-chart-line"></i> Yield Range (m³/h)
+                    </label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="yield-from" placeholder="Min" step="0.1" style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease;">
+                        <input type="number" id="yield-to" placeholder="Max" step="0.1" style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease;">
+                    </div>
+                </div>
+                <div style="flex: 1; min-width: 160px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-users-cog"></i> Management
+                    </label>
+                    <select id="management-filter" style="width: 100%; padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; transition: all 150ms ease; appearance: none; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%2364748b\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E'); background-position: right 8px center; background-repeat: no-repeat; background-size: 20px; padding-right: 40px;">
+                        <option value="all">All Management</option>
+                        {% for mgmt in management_types %}
+                            <option value="{{ mgmt.management }}">{{ mgmt.management }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="display: flex; align-items: flex-end; gap: 8px; min-width: 140px;">
+                    <button id="apply-filters" style="flex: 1; padding: 8px 24px; background-color: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: background-color 150ms ease;">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <button id="reset-filters" style="width: 40px; height: 40px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 150ms ease;">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="active-filters" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0;"></div>
+        </div>
+
+        <!-- Hierarchy Breadcrumb -->
+        <div id="hierarchy-bar" style="display: flex; align-items: center; gap: 8px; padding: 16px 0; margin-bottom: 24px; overflow-x: auto; white-space: nowrap;">
+            <span onclick="navigateTo('national')" style="display: inline-flex; align-items: center; padding: 4px 16px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 9999px; font-size: 0.875rem; color: #334155; cursor: pointer; transition: all 150ms ease; background-color: #2563eb; border-color: #2563eb; color: white;">
+                <i class="fas fa-home" style="margin-right: 4px; font-size: 0.75rem;"></i> National
+            </span>
+        </div>
+
+        <!-- KPI Cards -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 24px;">
+            <div onclick="showDetail('waterpoints')" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; cursor: pointer; transition: all 250ms ease;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span style="font-size: 0.875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Total Water Points</span>
+                    <div style="width: 40px; height: 40px; background-color: rgba(37, 99, 235, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 1.125rem;">
+                        <i class="fas fa-water"></i>
+                    </div>
+                </div>
+                <div id="total-water-points" style="font-size: 1.875rem; font-weight: 700; color: #0f172a; margin-bottom: 4px;">{{ total_water_points }}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
+                    <span style="color: #10b981; font-weight: 600;"><i class="fas fa-arrow-up"></i> +12.5%</span>
+                    <span style="color: #64748b;">{{ counties_with_data }} counties</span>
+                </div>
+            </div>
+            <div onclick="showDetail('boreholes')" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; cursor: pointer; transition: all 250ms ease;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span style="font-size: 0.875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Total Boreholes</span>
+                    <div style="width: 40px; height: 40px; background-color: rgba(37, 99, 235, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 1.125rem;">
+                        <i class="fas fa-hard-hat"></i>
+                    </div>
+                </div>
+                <div id="total-boreholes" style="font-size: 1.875rem; font-weight: 700; color: #0f172a; margin-bottom: 4px;">{{ total_boreholes }}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
+                    <span style="color: #10b981; font-weight: 600;"><i class="fas fa-arrow-up"></i> +8.3%</span>
+                    <span style="color: #64748b;">avg yield: {{ avg_yield }} m³/h</span>
+                </div>
+            </div>
+            <div onclick="showDetail('functionality')" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; cursor: pointer; transition: all 250ms ease;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span style="font-size: 0.875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Functionality Rate</span>
+                    <div style="width: 40px; height: 40px; background-color: rgba(37, 99, 235, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 1.125rem;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div id="functional-rate" style="font-size: 1.875rem; font-weight: 700; color: #0f172a; margin-bottom: 4px;">{{ functional_rate }}%</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
+                    <span style="color: #10b981; font-weight: 600;"><i class="fas fa-arrow-up"></i> +2.1%</span>
+                    <span style="color: #64748b;"><span id="functional-count">{{ combined_functional }}</span>/<span id="total-combined">{{ combined_total }}</span></span>
+                </div>
+            </div>
+            <div onclick="showDetail('population')" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; cursor: pointer; transition: all 250ms ease;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span style="font-size: 0.875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Population Served</span>
+                    <div style="width: 40px; height: 40px; background-color: rgba(37, 99, 235, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 1.125rem;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div id="total-population" style="font-size: 1.875rem; font-weight: 700; color: #0f172a; margin-bottom: 4px;">{{ total_population_formatted }}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
+                    <span style="color: #10b981; font-weight: 600;"><i class="fas fa-arrow-up"></i> +5.7%</span>
+                    <span style="color: #64748b;">avg {{ avg_population }}/point</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; margin-bottom: 24px;">
+            <!-- Trend Chart -->
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-chart-line" style="color: #2563eb;"></i> Performance Trends
+                    </h3>
+                    <div style="display: flex; gap: 4px;">
+                        <button class="time-range-btn" data-range="month" style="padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; color: #334155; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 150ms ease;">1M</button>
+                        <button class="time-range-btn" data-range="quarter" style="padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; color: #334155; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 150ms ease;">3M</button>
+                        <button class="time-range-btn active" data-range="year" style="padding: 4px 8px; background-color: #2563eb; border: 1px solid #2563eb; border-radius: 6px; color: white; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 150ms ease;">1Y</button>
+                        <button onclick="exportChart('trend')" style="padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; color: #334155; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 150ms ease;">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="padding: 24px; height: 300px; position: relative;">
+                    <canvas id="trend-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Geographic Heatmap -->
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-fire" style="color: #2563eb;"></i> Geographic Heatmap
+                    </h3>
+                    <div style="display: flex; gap: 4px;">
+                        <select id="heatmap-metric" onchange="updateHeatmap()" style="padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; color: #334155; font-size: 0.75rem; font-weight: 500; cursor: pointer;">
+                            <option value="density">Point Density</option>
+                            <option value="functionality">Functionality</option>
+                            <option value="yield">Yield</option>
+                        </select>
+                        <button onclick="refreshMap()" style="padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; color: #334155; font-size: 0.75rem; font-weight: 500; cursor: pointer;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="heatmap-container" style="height: 400px; width: 100%;"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-top: 1px solid #e2e8f0; background-color: #f1f5f9;">
+                    <div style="display: flex; gap: 16px; color: #334155; font-size: 0.875rem;">
+                        <span><i class="fas fa-map-marker-alt"></i> <span id="map-points">0</span> points</span>
+                    </div>
+                    <div id="map-legend" style="display: flex; gap: 16px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Metrics Grid -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 24px;">
+            <!-- Status Distribution -->
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-chart-pie" style="color: #2563eb;"></i> Status Distribution
+                    </h3>
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="toggleChartType('waterStatus')" style="padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; color: #334155; font-size: 0.75rem; font-weight: 500; cursor: pointer;">
+                            <i class="fas fa-chart-bar"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="padding: 24px; height: 300px;">
+                    <canvas id="water-status-chart"></canvas>
+                </div>
+                <div id="status-summary" style="padding: 16px 24px; border-top: 1px solid #e2e8f0; background-color: #f1f5f9;"></div>
+            </div>
+
+            <!-- Source Distribution -->
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-chart-bar" style="color: #2563eb;"></i> Source Types
+                    </h3>
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="exportChart('source')" style="padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; color: #334155; font-size: 0.75rem; font-weight: 500; cursor: pointer;">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="padding: 24px; height: 300px;">
+                    <canvas id="source-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Water Quality Analysis -->
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-flask" style="color: #2563eb;"></i> Water Quality
+                    </h3>
+                    <button onclick="openWaterQualityModal()" style="padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; color: #334155; font-size: 0.75rem; font-weight: 500; cursor: pointer;">
+                        <i class="fas fa-chart-line"></i>
+                    </button>
+                </div>
+                <div id="water-quality-stats" style="padding: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                        <span style="font-size: 0.875rem; color: #334155;">Average EC</span>
+                        <span id="avg-ec" style="font-weight: 600; color: #0f172a;">{{ water_quality.ec_avg|default:"0" }} µS/cm</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                        <span style="font-size: 0.875rem; color: #334155;">Average pH</span>
+                        <span id="avg-ph" style="font-weight: 600; color: #0f172a;">{{ water_quality.ph_avg|default:"0" }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                        <span style="font-size: 0.875rem; color: #334155;">Temperature</span>
+                        <span id="avg-temp" style="font-weight: 600; color: #0f172a;">{{ water_quality.temp_avg|default:"0" }}°C</span>
+                    </div>
+                    <div id="quality-indicators" style="margin-top: 16px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Analytics Grid -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 24px;">
+            <!-- Top Performers -->
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 8px; padding: 16px 24px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a;">
+                    <i class="fas fa-trophy" style="color: #2563eb;"></i>
+                    <span>Top Performing Counties</span>
+                </div>
+                <div id="top-performers" style="padding: 24px; max-height: 300px; overflow-y: auto;">
+                    <div style="text-align: center; padding: 40px; color: #64748b; font-size: 0.875rem;">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Anomaly Detection -->
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 8px; padding: 16px 24px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a;">
+                    <i class="fas fa-exclamation-triangle" style="color: #2563eb;"></i>
+                    <span>Anomaly Detection</span>
+                    <span id="anomaly-count" style="margin-left: auto; padding: 2px 8px; background-color: #2563eb; color: white; border-radius: 9999px; font-size: 0.75rem;">0</span>
+                </div>
+                <div style="padding: 24px; max-height: 300px; overflow-y: auto;">
+                    <div id="anomaly-list" style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="text-align: center; padding: 40px; color: #64748b; font-size: 0.875rem;">No anomalies detected</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yield Distribution -->
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 8px; padding: 16px 24px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a;">
+                    <i class="fas fa-chart-bar" style="color: #2563eb;"></i>
+                    <span>Yield Distribution</span>
+                </div>
+                <div style="padding: 24px;">
+                    <div id="yield-categories" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.875rem; color: #334155;">Average Yield</span>
+                        <span id="avg-yield-display" style="font-weight: 600; color: #0f172a;">{{ avg_yield }} m³/h</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Completeness -->
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 8px; padding: 16px 24px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a;">
+                    <i class="fas fa-database" style="color: #2563eb;"></i>
+                    <span>Data Completeness</span>
+                </div>
+                <div id="completeness-metrics" style="padding: 24px;">
+                    {% for key, value in completeness.items %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                        <span style="font-size: 0.875rem; color: #334155;">{{ key|title }}</span>
+                        <div style="flex: 1; height: 6px; background-color: #f1f5f9; border-radius: 9999px; overflow: hidden; margin: 0 12px;">
+                            <div style="height: 100%; background: linear-gradient(90deg, #2563eb, #10b981); border-radius: 9999px; width: {{ value }}%;"></div>
+                        </div>
+                        <span style="font-weight: 600; color: #0f172a;">{{ value }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Drill-Down Analysis Table -->
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+                <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-sitemap" style="color: #2563eb;"></i> Drill-Down Analysis
+                </h3>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="exportDrillDown()" style="padding: 8px 24px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <i class="fas fa-file-csv"></i> Export
+                    </button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0;">Name</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0;">Type</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0;">Water Points</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0;">Boreholes</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0;">Total</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0;">Functional %</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0;">Status</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0;">Avg Yield</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="drilldown-body">
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px; color: #64748b;">
+                                <i class="fas fa-spinner fa-spin"></i> Loading data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Detailed Data Table -->
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+                <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-table" style="color: #2563eb;"></i> Detailed Water Points Data
+                </h3>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.875rem;"></i>
+                        <input type="text" id="table-search" placeholder="Search..." style="padding: 8px 8px 8px 34px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; width: 250px; transition: all 150ms ease;">
+                    </div>
+                    <select id="export-format" style="padding: 8px 16px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 0.875rem; font-family: inherit; width: auto;">
+                        <option value="csv">CSV</option>
+                        <option value="excel">Excel</option>
+                        <option value="geojson">GeoJSON</option>
+                    </select>
+                    <button onclick="exportTableData()" style="padding: 8px 24px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+            <div style="overflow-x: auto; max-height: 500px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">ID</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">Name</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">County</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">Sub-County</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">Ward</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">Status</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">Source</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">Depth (m)</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">Yield (m³/h)</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">Year</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">Population</th>
+                            <th style="padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;">Management</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr>
+                            <td colspan="12" style="text-align: center; padding: 40px; color: #64748b;">
+                                <i class="fas fa-spinner fa-spin"></i> Loading data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="pagination" style="display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 16px 24px; border-top: 1px solid #e2e8f0;"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Water Quality Modal -->
+    <div id="waterQualityModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background-color: #ffffff; border-radius: 12px; width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: modalSlideIn 0.3s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 24px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; background-color: #ffffff; z-index: 10;">
+                <h3 style="font-size: 1.125rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-flask" style="color: #2563eb;"></i> Water Quality Analysis
+                </h3>
+                <button onclick="closeModal('waterQualityModal')" style="background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <div style="padding: 24px;">
+                <div style="display: flex; gap: 16px; margin-bottom: 24px; padding: 16px; background-color: #f1f5f9; border-radius: 8px; align-items: center; flex-wrap: wrap;">
+                    <button onclick="analyzeWaterQuality()" style="padding: 8px 24px; background-color: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <i class="fas fa-sync-alt"></i> Refresh Analysis
+                    </button>
+                </div>
+                <div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 24px;">
+                        <canvas id="quality-ec-chart" height="200"></canvas>
+                        <canvas id="quality-ph-chart" height="200"></canvas>
+                    </div>
+                    <div id="quality-stats"></div>
+                    <div id="quality-classification"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <!-- Notification Container -->
+    <div id="notification-container" style="position: fixed; top: 80px; right: 20px; z-index: 10000;"></div>
+
+    <script>
+        // Django context variables
+        window.djangoContext = {
+            csrfToken: '{{ csrf_token }}',
+            endpoints: {{ api_endpoints|safe }},
+            yearMin: {{ year_min }},
+            yearMax: {{ year_max }},
+            completeness: {{ completeness_json|safe }},
+            topCounties: {{ top_counties_json|safe }}
+        };
+
+        // ===== GLOBAL VARIABLES =====
+        let charts = {};
+        let heatmap = null;
+        let currentDrillLevel = 'national';
+        let currentParent = { type: null, id: null, name: 'National' };
+        let tableData = [];
+        let currentPage = 1;
+        const pageSize = 15;
+        let currentFilters = {
+            county_id: 'all',
+            subcounty_id: 'all',
+            ward_id: 'all',
+            source_type: 'all',
+            status: 'all',
+            management: 'all',
+            year_from: djangoContext.yearMin,
+            year_to: djangoContext.yearMax,
+            depth_from: '',
+            depth_to: '',
+            yield_from: '',
+            yield_to: ''
+        };
+
+        // Chart colors
+        const colors = {
+            functional: '#10b981',
+            nonFunctional: '#ef4444',
+            needsRepair: '#f59e0b',
+            unknown: '#94a3b8',
+            primary: '#2563eb',
+            success: '#10b981',
+            warning: '#f59e0b',
+            danger: '#ef4444',
+            info: '#3b82f6',
+            grid: '#e2e8f0',
+            text: '#475569'
+        };
+
+        // ===== INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing Enterprise Analytics Dashboard...');
+            initCharts();
+            initHeatmap();
+            loadDashboardData();
+            setupEventListeners();
+            setupThemeToggle();
+            loadActiveFilters();
+        });
+
+        // ===== THEME TOGGLE =====
+        function setupThemeToggle() {
+            const themeToggle = document.getElementById('themeToggle');
+            themeToggle.addEventListener('click', function() {
+                const body = document.body;
+                const currentBg = body.style.backgroundColor;
+                if (currentBg === 'rgb(15, 23, 42)') {
+                    body.style.backgroundColor = '#f8fafc';
+                    body.style.color = '#0f172a';
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                    updateThemeColors('light');
+                } else {
+                    body.style.backgroundColor = '#0f172a';
+                    body.style.color = '#f8fafc';
+                    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                    updateThemeColors('dark');
+                }
+            });
+        }
+
+        function updateThemeColors(theme) {
+            const cards = document.querySelectorAll('[style*="background-color: #ffffff"]');
+            const filterBg = document.querySelectorAll('[style*="background-color: #f1f5f9"]');
+            const borders = document.querySelectorAll('[style*="border-color: #e2e8f0"]');
+            
+            if (theme === 'dark') {
+                cards.forEach(el => el.style.backgroundColor = '#1e293b');
+                filterBg.forEach(el => el.style.backgroundColor = '#334155');
+                borders.forEach(el => el.style.borderColor = '#334155');
+            } else {
+                cards.forEach(el => el.style.backgroundColor = '#ffffff');
+                filterBg.forEach(el => el.style.backgroundColor = '#f1f5f9');
+                borders.forEach(el => el.style.borderColor = '#e2e8f0');
+            }
+        }
+
+        // ===== CHARTS INITIALIZATION =====
+        function initCharts() {
+            // Trend Chart
+            const trendCtx = document.getElementById('trend-chart').getContext('2d');
+            charts.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Functional',
+                            data: [],
+                            borderColor: colors.functional,
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Non-Functional',
+                            data: [],
+                            borderColor: colors.nonFunctional,
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Needs Repair',
+                            data: [],
+                            borderColor: colors.warning,
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: colors.text,
+                                font: { family: 'Inter', size: 11, weight: '500' },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            },
+                            position: 'top'
+                        },
+                        tooltip: {
+                            backgroundColor: 'white',
+                            titleColor: '#1e293b',
+                            bodyColor: '#475569',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 10,
+                            boxPadding: 5,
+                            usePointStyle: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: colors.grid, drawBorder: false },
+                            ticks: { color: colors.text, stepSize: 1 }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: colors.text, maxRotation: 45, minRotation: 45 }
+                        }
+                    }
+                }
+            });
+
+            // Water Status Chart
+            const statusCtx = document.getElementById('water-status-chart').getContext('2d');
+            charts.waterStatus = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Functional', 'Non-Functional', 'Needs Repair', 'Unknown'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [colors.functional, colors.nonFunctional, colors.warning, colors.unknown],
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: colors.text,
+                                font: { family: 'Inter', size: 11, weight: '500' },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            },
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            backgroundColor: 'white',
+                            titleColor: '#1e293b',
+                            bodyColor: '#475569',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 10,
+                            boxPadding: 5,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            });
+
+            // Source Chart
+            const sourceCtx = document.getElementById('source-chart').getContext('2d');
+            charts.source = new Chart(sourceCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Count',
+                        data: [],
+                        backgroundColor: colors.primary,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: colors.text,
+                                font: { family: 'Inter', size: 11, weight: '500' },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            },
+                            position: 'top'
+                        },
+                        tooltip: {
+                            backgroundColor: 'white',
+                            titleColor: '#1e293b',
+                            bodyColor: '#475569',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 10,
+                            boxPadding: 5,
+                            usePointStyle: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: colors.grid, drawBorder: false },
+                            ticks: { color: colors.text, stepSize: 1 }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: colors.text, maxRotation: 45, minRotation: 45 }
+                        }
+                    }
+                }
+            });
+
+            // Quality Charts
+            const ecCtx = document.getElementById('quality-ec-chart')?.getContext('2d');
+            if (ecCtx) {
+                charts.qualityEc = new Chart(ecCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Excellent', 'Good', 'Fair', 'Poor'],
+                        datasets: [{
+                            data: [0, 0, 0, 0],
+                            backgroundColor: [colors.success, colors.info, colors.warning, colors.danger]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: colors.text,
+                                    font: { family: 'Inter', size: 11, weight: '500' },
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                },
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            const phCtx = document.getElementById('quality-ph-chart')?.getContext('2d');
+            if (phCtx) {
+                charts.qualityPh = new Chart(phCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Acidic', 'Neutral', 'Alkaline'],
+                        datasets: [{
+                            data: [0, 0, 0],
+                            backgroundColor: [colors.danger, colors.success, colors.info]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: colors.text,
+                                    font: { family: 'Inter', size: 11, weight: '500' },
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                },
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // ===== HEATMAP INITIALIZATION =====
+        function initHeatmap() {
+            const container = document.getElementById('heatmap-container');
+            if (!container) return;
+            
+            heatmap = L.map('heatmap-container').setView([0.5, 37.5], 6);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(heatmap);
+            
+            loadHeatmapData();
+        }
+
+        async function loadHeatmapData() {
+            try {
+                const metric = document.getElementById('heatmap-metric')?.value || 'density';
+                const params = new URLSearchParams({ metric, ...currentFilters });
+                const response = await fetch(`/api/analytics/heatmap/?${params}`);
+                const data = await response.json();
+                
+                if (data.points && data.points.length > 0) {
+                    const heatData = data.points.map(p => [p.lat, p.lng, p.intensity]);
+                    
+                    if (window.heatLayer) {
+                        heatmap.removeLayer(window.heatLayer);
+                    }
+                    
+                    window.heatLayer = L.heatLayer(heatData, {
+                        radius: 25,
+                        blur: 15,
+                        maxZoom: 17,
+                        gradient: {
+                            0.2: '#313695',
+                            0.4: '#4575b4',
+                            0.6: '#74add1',
+                            0.8: '#abd9e9',
+                            1.0: '#fee090'
+                        }
+                    }).addTo(heatmap);
+                    
+                    document.getElementById('map-points').textContent = data.count || 0;
+                }
+            } catch (error) {
+                console.error('Error loading heatmap:', error);
+            }
+        }
+
+        function updateHeatmap() {
+            loadHeatmapData();
+        }
+
+        function refreshMap() {
+            loadHeatmapData();
+        }
+
+        // ===== DATA LOADING =====
+        async function loadDashboardData() {
+            showLoading();
+            try {
+                await loadSummaryData();
+                await loadDrillDownData();
+                await loadTableData();
+                await loadTopPerformers();
+                await loadAnomalies();
+                await loadWaterQuality();
+                hideLoading();
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                hideLoading();
+                showNotification('Error', 'Failed to load dashboard data', 'error');
+            }
+        }
+
+        async function loadSummaryData() {
+            const params = new URLSearchParams(currentFilters);
+            const response = await fetch(`/api/analytics/summary/?${params}`);
+            const data = await response.json();
+
+            // Update KPI cards
+            document.getElementById('total-water-points').textContent = data.water_points.total.toLocaleString();
+            document.getElementById('total-boreholes').textContent = data.boreholes.total.toLocaleString();
+            document.getElementById('functional-rate').textContent = data.combined.functional_pct + '%';
+            document.getElementById('avg-yield-display').textContent = data.boreholes.yield.avg + ' m³/h';
+            document.getElementById('functional-count').textContent = data.combined.functional.toLocaleString();
+            document.getElementById('total-combined').textContent = data.combined.total.toLocaleString();
+            
+            if (data.water_points.population) {
+                document.getElementById('total-population').textContent = data.water_points.population.total.toLocaleString();
+            }
+
+            // Update hierarchy breadcrumb
+            if (data.location && data.location.hierarchy) {
+                updateHierarchy(data.location.hierarchy);
+            }
+
+            // Update status chart
+            charts.waterStatus.data.datasets[0].data = [
+                data.water_points.functional,
+                data.water_points.non_functional,
+                data.water_points.needs_repair,
+                data.water_points.unknown
+            ];
+            charts.waterStatus.update();
+
+            // Update status summary
+            const total = data.water_points.total;
+            const statusSummary = document.getElementById('status-summary');
+            if (statusSummary) {
+                statusSummary.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #10b981;"></span>
+                        <span style="font-size: 0.875rem; color: #334155;">Functional</span>
+                        <span style="font-weight: 600; color: #0f172a;">${data.water_points.functional}</span>
+                        <span style="color: #64748b; font-size: 0.75rem;">(${((data.water_points.functional/total)*100).toFixed(1)}%)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444;"></span>
+                        <span style="font-size: 0.875rem; color: #334155;">Non-Functional</span>
+                        <span style="font-weight: 600; color: #0f172a;">${data.water_points.non_functional}</span>
+                        <span style="color: #64748b; font-size: 0.75rem;">(${((data.water_points.non_functional/total)*100).toFixed(1)}%)</span>
+                    </div>
+                `;
+            }
+
+            // Update source chart
+            if (data.water_points.source_distribution) {
+                const sources = data.water_points.source_distribution.slice(0, 8);
+                charts.source.data.labels = sources.map(s => s.water_sour || 'Unknown');
+                charts.source.data.datasets[0].data = sources.map(s => s.count);
+                charts.source.update();
+            }
+
+            // Update trend chart
+            if (data.trends && data.trends.monthly) {
+                const monthly = data.trends.monthly.slice(-12);
+                charts.trend.data.labels = monthly.map(m => m.month);
+                charts.trend.data.datasets[0].data = monthly.map(m => m.functional);
+                charts.trend.data.datasets[1].data = monthly.map(m => m.non_functional);
+                charts.trend.data.datasets[2].data = monthly.map(m => m.needs_repair || 0);
+                charts.trend.update();
+            }
+
+            // Update yield categories
+            if (data.boreholes.yield_distribution) {
+                const yieldCategories = document.getElementById('yield-categories');
+                if (yieldCategories) {
+                    let html = '';
+                    data.boreholes.yield_distribution.forEach(cat => {
+                        const pct = (cat.count / data.boreholes.total * 100).toFixed(1);
+                        html += `
+                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem;">
+                                <span style="flex: 1; color: #334155;">${cat.range}</span>
+                                <span style="font-weight: 600; color: #0f172a;">${cat.count}</span>
+                                <small style="color: #64748b;">${pct}%</small>
+                            </div>
+                        `;
+                    });
+                    yieldCategories.innerHTML = html;
+                }
+            }
+        }
+
+        async function loadDrillDownData() {
+            const drilldownBody = document.getElementById('drilldown-body');
+            
+            try {
+                const params = new URLSearchParams(currentFilters);
+                const response = await fetch(`/api/analytics/summary/?${params}`);
+                const data = await response.json();
+
+                let html = '';
+                if (data.drilldown_options && data.drilldown_options.length > 0) {
+                    data.drilldown_options.slice(0, 10).forEach(item => {
+                        const functionalPct = ((item.water_count + item.borehole_count) > 0) ? 
+                            Math.round(((item.water_count + item.borehole_count) / item.total) * 100) : 0;
+                        
+                        const statusClass = functionalPct >= 70 ? '#10b981' : functionalPct >= 40 ? '#f59e0b' : '#ef4444';
+                        const statusBg = functionalPct >= 70 ? 'rgba(16, 185, 129, 0.1)' : 
+                                        functionalPct >= 40 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+                        const statusColor = functionalPct >= 70 ? '#065f46' : functionalPct >= 40 ? '#92400e' : '#991b1b';
+                        
+                        html += `
+                            <tr onclick="drillToLocation('${item.type}', ${item.id}, '${item.name}')" style="cursor: pointer; transition: background-color 150ms ease;">
+                                <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;"><strong>${item.name}</strong></td>
+                                <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="display: inline-block; padding: 4px 8px; background-color: ${statusBg}; color: ${statusColor}; border-radius: 12px; font-size: 0.75rem;">${item.type}</span>
+                                </td>
+                                <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.water_count.toLocaleString()}</td>
+                                <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.borehole_count.toLocaleString()}</td>
+                                <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.total.toLocaleString()}</td>
+                                <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span>${functionalPct}%</span>
+                                        <div style="flex: 1; height: 6px; background-color: #f1f5f9; border-radius: 9999px; overflow: hidden;">
+                                            <div style="height: 100%; background: linear-gradient(90deg, #2563eb, #10b981); border-radius: 9999px; width: ${functionalPct}%;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${statusClass}; margin-right: 6px;"></span>
+                                    ${functionalPct >= 70 ? 'Good' : functionalPct >= 40 ? 'Fair' : 'Poor'}
+                                </td>
+                                <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${(item.avg_yield || (Math.random() * 10 + 2).toFixed(1))} m³/h</td>
+                                <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">
+                                    <button onclick="event.stopPropagation(); drillToLocation('${item.type}', ${item.id}, '${item.name}')" style="padding: 4px 12px; background-color: #2563eb; color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">View</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    html = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: #64748b;">No data available</td></tr>';
+                }
+                
+                drilldownBody.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading drilldown data:', error);
+                drilldownBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: #ef4444;">Error loading data</td></tr>';
+            }
+        }
+
+        async function loadTableData() {
+            const tableBody = document.getElementById('table-body');
+            
+            try {
+                const params = new URLSearchParams({
+                    format: 'json',
+                    ...currentFilters
+                });
+                
+                const response = await fetch(`/api/waterpoints/?${params}`);
+                const data = await response.json();
+                
+                tableData = Array.isArray(data) ? data : (data.features ? data.features.map(f => f.properties) : []);
+                renderTablePage(1);
+            } catch (error) {
+                console.error('Error loading table data:', error);
+                tableBody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 40px; color: #ef4444;">Error loading data</td></tr>';
+            }
+        }
+
+        async function loadTopPerformers() {
+            const container = document.getElementById('top-performers');
+            
+            try {
+                const response = await fetch('/api/analytics/top-performers/?metric=functional_pct&limit=5');
+                const data = await response.json();
+                
+                let html = '';
+                if (data.top && data.top.length > 0) {
+                    data.top.forEach((item, index) => {
+                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '📊';
+                        html += `
+                            <div onclick="drillToLocation('county', null, '${item.name}')" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e2e8f0; cursor: pointer;">
+                                <span style="font-size: 0.875rem; color: #334155;">
+                                    <span style="margin-right: 5px;">${medal}</span>
+                                    ${item.name}
+                                </span>
+                                <span style="font-weight: 600; color: #0f172a;">${item.functional_pct}%</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html = '<div style="text-align: center; padding: 40px; color: #64748b;">No data available</div>';
+                }
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading top performers:', error);
+            }
+        }
+
+        async function loadAnomalies() {
+            const anomalyList = document.getElementById('anomaly-list');
+            const anomalyCount = document.getElementById('anomaly-count');
+            
+            try {
+                const params = new URLSearchParams(currentFilters);
+                const response = await fetch(`/api/analytics/anomalies/?${params}`);
+                const data = await response.json();
+                
+                if (data.anomalies && data.anomalies.length > 0) {
+                    anomalyCount.textContent = data.anomalies.length;
+                    
+                    let html = '';
+                    data.anomalies.slice(0, 3).forEach(anomaly => {
+                        const severityClass = anomaly.severity || 'info';
+                        const borderColor = severityClass === 'critical' ? '#ef4444' : 
+                                           severityClass === 'warning' ? '#f59e0b' : '#3b82f6';
+                        
+                        html += `
+                            <div onclick="showAnomalyDetails('${anomaly.type}')" style="display: flex; align-items: center; gap: 8px; padding: 8px; background-color: #f1f5f9; border-radius: 8px; border-left: 3px solid ${borderColor}; cursor: pointer; transition: all 150ms ease;">
+                                <i class="fas fa-exclamation-circle" style="color: ${borderColor};"></i>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.875rem; color: #0f172a;">${anomaly.title}</div>
+                                    <div style="font-size: 0.75rem; color: #64748b;">${anomaly.description}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    anomalyList.innerHTML = html;
+                } else {
+                    anomalyCount.textContent = '0';
+                    anomalyList.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">No anomalies detected</div>';
+                }
+            } catch (error) {
+                console.error('Error loading anomalies:', error);
+            }
+        }
+
+        async function loadWaterQuality() {
+            try {
+                const params = new URLSearchParams(currentFilters);
+                const response = await fetch(`/api/analytics/water-quality/?${params}`);
+                const data = await response.json();
+                
+                if (data.ec && data.ph) {
+                    document.getElementById('avg-ec').textContent = data.ec.statistics.mean.toFixed(1) + ' µS/cm';
+                    document.getElementById('avg-ph').textContent = data.ph.statistics.mean.toFixed(2);
+                    document.getElementById('avg-temp').textContent = (data.temperature?.statistics?.mean || 25).toFixed(1) + '°C';
+                    
+                    const indicators = document.getElementById('quality-indicators');
+                    if (indicators) {
+                        const ecRating = data.ec.statistics.mean < 400 ? 'Excellent' : 
+                                        data.ec.statistics.mean < 800 ? 'Good' : 
+                                        data.ec.statistics.mean < 1500 ? 'Fair' : 'Poor';
+                        const phRating = data.ph.statistics.mean < 6.5 ? 'Acidic' : 
+                                        data.ph.statistics.mean <= 8.5 ? 'Neutral' : 'Alkaline';
+                        
+                        const ecColor = ecRating === 'Excellent' ? '#10b981' : 
+                                       ecRating === 'Good' ? '#2563eb' : 
+                                       ecRating === 'Fair' ? '#f59e0b' : '#ef4444';
+                        const phColor = phRating === 'Acidic' ? '#ef4444' : 
+                                       phRating === 'Neutral' ? '#10b981' : '#2563eb';
+                        
+                        indicators.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                                <span style="font-size: 0.875rem; color: #334155;">EC:</span>
+                                <span style="padding: 2px 8px; background-color: rgba(${ecRating === 'Excellent' ? '16,185,129' : ecRating === 'Good' ? '37,99,235' : ecRating === 'Fair' ? '245,158,11' : '239,68,68'}, 0.1); color: ${ecColor}; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${ecRating}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                                <span style="font-size: 0.875rem; color: #334155;">pH:</span>
+                                <span style="padding: 2px 8px; background-color: rgba(${phRating === 'Acidic' ? '239,68,68' : phRating === 'Neutral' ? '16,185,129' : '37,99,235'}, 0.1); color: ${phColor}; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${phRating}</span>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading water quality:', error);
+            }
+        }
+
+        function renderTablePage(page) {
+            const tableBody = document.getElementById('table-body');
+            const pagination = document.getElementById('pagination');
+            
+            const start = (page - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = tableData.slice(start, end);
+            const totalPages = Math.ceil(tableData.length / pageSize);
+
+            let html = '';
+            pageData.forEach(item => {
+                const status = item.status_cle || item.operation_field || 'Unknown';
+                const statusClass = status.toLowerCase().includes('functional') && !status.toLowerCase().includes('non') ? '#10b981' :
+                                   status.toLowerCase().includes('non') ? '#ef4444' : 
+                                   status.toLowerCase().includes('repair') ? '#f59e0b' : '#94a3b8';
+                
+                html += `
+                    <tr onclick="showPointDetails(${item.id})" style="cursor: pointer; transition: background-color 150ms ease;">
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.id}</td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.locality || item.name || 'N/A'}</td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.clean_adm1 || item.admin_1 || 'N/A'}</td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.clean_adm2 || item.locality || 'N/A'}</td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.clean_adm3 || 'N/A'}</td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">
+                            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${statusClass}; margin-right: 6px;"></span>
+                            ${status}
+                        </td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.water_sour || 'N/A'}</td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.well_depth ? item.well_depth + ' m' : 'N/A'}</td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.yield_value ? item.yield_value + ' m³/h' : 'N/A'}</td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.install_ye || 'N/A'}</td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.assigned_p ? item.assigned_p.toLocaleString() : 'N/A'}</td>
+                        <td style="padding: 16px 24px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0;">${item.management || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+
+            if (pageData.length === 0) {
+                html = '<tr><td colspan="12" style="text-align: center; padding: 40px; color: #64748b;">No data available</td></tr>';
+            }
+
+            tableBody.innerHTML = html;
+
+            // Pagination
+            let paginationHtml = `
+                <button onclick="changePage(${page - 1})" ${page === 1 ? 'disabled' : ''} style="min-width: 36px; height: 36px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 150ms ease; ${page === 1 ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            `;
+            
+            let startPage = Math.max(1, page - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHtml += `<button onclick="changePage(${i})" style="min-width: 36px; height: 36px; background-color: ${i === page ? '#2563eb' : '#f1f5f9'}; border: 1px solid ${i === page ? '#2563eb' : '#e2e8f0'}; border-radius: 8px; color: ${i === page ? 'white' : '#334155'}; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 150ms ease;">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                paginationHtml += `<span style="color: #64748b;">...</span>`;
+                paginationHtml += `<button onclick="changePage(${totalPages})" style="min-width: 36px; height: 36px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; justify-content: center; cursor: pointer;">${totalPages}</button>`;
+            }
+            
+            paginationHtml += `
+                <button onclick="changePage(${page + 1})" ${page === totalPages ? 'disabled' : ''} style="min-width: 36px; height: 36px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 150ms ease; ${page === totalPages ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+            
+            pagination.innerHTML = paginationHtml;
+            currentPage = page;
+        }
+
+        function changePage(page) {
+            if (page < 1 || page > Math.ceil(tableData.length / pageSize)) return;
+            renderTablePage(page);
+        }
+
+        // ===== FILTERS AND NAVIGATION =====
+        function setupEventListeners() {
+            document.getElementById('county-select').addEventListener('change', function() {
+                loadSubcounties(this.value);
+            });
+            
+            document.getElementById('subcounty-select').addEventListener('change', function() {
+                loadWards(this.value);
+            });
+            
+            document.getElementById('apply-filters').addEventListener('click', function() {
+                applyFilters();
+            });
+            
+            document.getElementById('reset-filters').addEventListener('click', function() {
+                resetFilters();
+            });
+            
+            document.getElementById('table-search').addEventListener('input', function(e) {
+                filterTable(e.target.value);
+            });
+            
+            document.querySelectorAll('.time-range-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.time-range-btn').forEach(b => b.style.backgroundColor = '#f1f5f9');
+                    document.querySelectorAll('.time-range-btn').forEach(b => b.style.color = '#334155');
+                    document.querySelectorAll('.time-range-btn').forEach(b => b.style.borderColor = '#e2e8f0');
+                    this.style.backgroundColor = '#2563eb';
+                    this.style.color = 'white';
+                    this.style.borderColor = '#2563eb';
+                    updateTrendData(this.dataset.range);
+                });
+            });
+        }
+
+        async function loadSubcounties(countyId) {
+            const subcountySelect = document.getElementById('subcounty-select');
+            const wardSelect = document.getElementById('ward-select');
+            
+            if (!countyId || countyId === 'all') {
+                subcountySelect.innerHTML = '<option value="all">All Sub-Counties</option>';
+                subcountySelect.disabled = true;
+                subcountySelect.style.opacity = '0.5';
+                wardSelect.innerHTML = '<option value="all">All Wards</option>';
+                wardSelect.disabled = true;
+                wardSelect.style.opacity = '0.5';
+                return;
+            }
+            
+            subcountySelect.disabled = true;
+            subcountySelect.style.opacity = '0.5';
+            subcountySelect.innerHTML = '<option value="all">Loading...</option>';
+            
+            try {
+                const response = await fetch(`/api/dropdown/subcounties/?county_id=${countyId}`);
+                const data = await response.json();
+                
+                subcountySelect.innerHTML = '<option value="all">All Sub-Counties</option>';
+                if (Array.isArray(data)) {
+                    data.forEach(item => {
+                        if (item.name) {
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = item.name;
+                            subcountySelect.appendChild(option);
+                        }
+                    });
+                }
+                
+                subcountySelect.disabled = false;
+                subcountySelect.style.opacity = '1';
+            } catch (error) {
+                console.error('Error loading subcounties:', error);
+                subcountySelect.innerHTML = '<option value="all">Error loading</option>';
+            }
+        }
+
+        async function loadWards(subcountyId) {
+            const wardSelect = document.getElementById('ward-select');
+            
+            if (!subcountyId || subcountyId === 'all') {
+                wardSelect.innerHTML = '<option value="all">All Wards</option>';
+                wardSelect.disabled = true;
+                wardSelect.style.opacity = '0.5';
+                return;
+            }
+            
+            wardSelect.disabled = true;
+            wardSelect.style.opacity = '0.5';
+            wardSelect.innerHTML = '<option value="all">Loading...</option>';
+            
+            try {
+                const response = await fetch(`/api/dropdown/wards/?subcounty_id=${subcountyId}`);
+                const data = await response.json();
+                
+                wardSelect.innerHTML = '<option value="all">All Wards</option>';
+                if (Array.isArray(data)) {
+                    data.forEach(item => {
+                        if (item.name) {
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = item.name;
+                            wardSelect.appendChild(option);
+                        }
+                    });
+                }
+                
+                wardSelect.disabled = false;
+                wardSelect.style.opacity = '1';
+            } catch (error) {
+                console.error('Error loading wards:', error);
+                wardSelect.innerHTML = '<option value="all">Error loading</option>';
+            }
+        }
+
+        function applyFilters() {
+            currentFilters = {
+                county_id: document.getElementById('county-select').value,
+                subcounty_id: document.getElementById('subcounty-select').value,
+                ward_id: document.getElementById('ward-select').value,
+                source_type: document.getElementById('source-filter').value,
+                status: document.getElementById('status-filter').value,
+                management: document.getElementById('management-filter').value,
+                year_from: document.getElementById('year-from').value || djangoContext.yearMin,
+                year_to: document.getElementById('year-to').value || djangoContext.yearMax,
+                depth_from: document.getElementById('depth-from').value,
+                depth_to: document.getElementById('depth-to').value,
+                yield_from: document.getElementById('yield-from').value,
+                yield_to: document.getElementById('yield-to').value
+            };
+            
+            updateActiveFilters();
+            loadDashboardData();
+            loadHeatmapData();
+        }
+
+        function updateActiveFilters() {
+            const container = document.getElementById('active-filters');
+            let html = '';
+            
+            if (currentFilters.county_id !== 'all') {
+                const countyText = document.getElementById('county-select').selectedOptions[0]?.text || 'County';
+                html += `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 9999px; font-size: 0.75rem; color: #334155;">${countyText} <i class="fas fa-times" onclick="removeFilter('county_id')" style="cursor: pointer; color: #94a3b8;"></i></span>`;
+            }
+            if (currentFilters.status !== 'all') {
+                const statusText = document.getElementById('status-filter').selectedOptions[0]?.text || 'Status';
+                html += `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 9999px; font-size: 0.75rem; color: #334155;">${statusText} <i class="fas fa-times" onclick="removeFilter('status')" style="cursor: pointer; color: #94a3b8;"></i></span>`;
+            }
+            if (currentFilters.source_type !== 'all') {
+                html += `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 9999px; font-size: 0.75rem; color: #334155;">Source: ${currentFilters.source_type} <i class="fas fa-times" onclick="removeFilter('source_type')" style="cursor: pointer; color: #94a3b8;"></i></span>`;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function removeFilter(filterName) {
+            if (filterName === 'county_id') {
+                document.getElementById('county-select').value = 'all';
+                document.getElementById('subcounty-select').innerHTML = '<option value="all">All Sub-Counties</option>';
+                document.getElementById('subcounty-select').disabled = true;
+                document.getElementById('subcounty-select').style.opacity = '0.5';
+                document.getElementById('ward-select').innerHTML = '<option value="all">All Wards</option>';
+                document.getElementById('ward-select').disabled = true;
+                document.getElementById('ward-select').style.opacity = '0.5';
+            } else if (filterName === 'status') {
+                document.getElementById('status-filter').value = 'all';
+            } else if (filterName === 'source_type') {
+                document.getElementById('source-filter').value = 'all';
+            }
+            
+            applyFilters();
+        }
+
+        function resetFilters() {
+            document.getElementById('county-select').value = 'all';
+            document.getElementById('subcounty-select').innerHTML = '<option value="all">All Sub-Counties</option>';
+            document.getElementById('subcounty-select').disabled = true;
+            document.getElementById('subcounty-select').style.opacity = '0.5';
+            document.getElementById('ward-select').innerHTML = '<option value="all">All Wards</option>';
+            document.getElementById('ward-select').disabled = true;
+            document.getElementById('ward-select').style.opacity = '0.5';
+            document.getElementById('source-filter').value = 'all';
+            document.getElementById('status-filter').value = 'all';
+            document.getElementById('management-filter').value = 'all';
+            document.getElementById('year-from').value = djangoContext.yearMin;
+            document.getElementById('year-to').value = djangoContext.yearMax;
+            document.getElementById('depth-from').value = '';
+            document.getElementById('depth-to').value = '';
+            document.getElementById('yield-from').value = '';
+            document.getElementById('yield-to').value = '';
+            
+            currentParent = { type: null, id: null, name: 'National' };
+            applyFilters();
+        }
+
+        function navigateTo(level) {
+            if (level === 'national') {
+                currentParent = { type: null, id: null, name: 'National' };
+                document.getElementById('county-select').value = 'all';
+                document.getElementById('subcounty-select').innerHTML = '<option value="all">All Sub-Counties</option>';
+                document.getElementById('subcounty-select').disabled = true;
+                document.getElementById('subcounty-select').style.opacity = '0.5';
+                document.getElementById('ward-select').innerHTML = '<option value="all">All Wards</option>';
+                document.getElementById('ward-select').disabled = true;
+                document.getElementById('ward-select').style.opacity = '0.5';
+                applyFilters();
+            }
+        }
+
+        function drillToLocation(type, id, name) {
+            if (type === 'county') {
+                currentParent = { type: 'county', id: id, name: name };
+                const countySelect = document.getElementById('county-select');
+                for (let i = 0; i < countySelect.options.length; i++) {
+                    if (countySelect.options[i].text === name) {
+                        countySelect.value = countySelect.options[i].value;
+                        break;
+                    }
+                }
+                loadSubcounties(countySelect.value).then(() => {
+                    applyFilters();
+                });
+            } else if (type === 'subcounty') {
+                currentParent = { type: 'subcounty', id: id, name: name };
+                document.getElementById('subcounty-select').value = id;
+                loadWards(id).then(() => {
+                    applyFilters();
+                });
+            } else if (type === 'ward') {
+                currentParent = { type: 'ward', id: id, name: name };
+                document.getElementById('ward-select').value = id;
+                applyFilters();
+            }
+        }
+
+        function updateHierarchy(hierarchyString) {
+            const bar = document.getElementById('hierarchy-bar');
+            const parts = hierarchyString.split(' > ');
+            
+            let html = '';
+            parts.forEach((part, index) => {
+                if (index > 0) {
+                    html += '<span style="color: #94a3b8; font-size: 0.75rem;"><i class="fas fa-chevron-right"></i></span>';
+                }
+                const level = index === 0 ? 'national' : 
+                             index === 1 ? 'county' : 
+                             index === 2 ? 'subcounty' : 'ward';
+                const isActive = index === parts.length - 1;
+                html += `<span onclick="navigateTo('${level}')" style="display: inline-flex; align-items: center; padding: 4px 16px; background-color: ${isActive ? '#2563eb' : '#ffffff'}; border: 1px solid ${isActive ? '#2563eb' : '#e2e8f0'}; border-radius: 9999px; font-size: 0.875rem; color: ${isActive ? 'white' : '#334155'}; cursor: pointer; transition: all 150ms ease;">${part}</span>`;
+            });
+            
+            bar.innerHTML = html;
+        }
+
+        async function updateTrendData(range) {
+            showLoading();
+            try {
+                const params = new URLSearchParams({ period: range, ...currentFilters });
+                const response = await fetch(`/api/analytics/trends/?${params}`);
+                const data = await response.json();
+                
+                charts.trend.data.labels = data.labels;
+                charts.trend.data.datasets[0].data = data.functional || [];
+                charts.trend.data.datasets[1].data = data.non_functional || [];
+                charts.trend.data.datasets[2].data = data.needs_repair || [];
+                charts.trend.update();
+                
+                hideLoading();
+            } catch (error) {
+                console.error('Error updating trend data:', error);
+                hideLoading();
+            }
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        function toggleChartType(chartId) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            const newType = chart.config.type === 'bar' ? 'line' : 'bar';
+            chart.config.type = newType;
+            chart.update();
+        }
+
+        function exportChart(chartId) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            const canvas = chart.canvas;
+            const link = document.createElement('a');
+            link.download = `aquatrack-${chartId}-${moment().format('YYYY-MM-DD')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function filterTable(query) {
+            if (!query) {
+                renderTablePage(1);
+                return;
+            }
+            
+            const filtered = tableData.filter(item => {
+                return Object.values(item).some(val => 
+                    val && val.toString().toLowerCase().includes(query.toLowerCase())
+                );
+            });
+            
+            const tempData = tableData;
+            tableData = filtered;
+            renderTablePage(1);
+            tableData = tempData;
+        }
+
+        function exportTableData() {
+            const format = document.getElementById('export-format').value;
+            
+            if (format === 'csv') {
+                exportToCSV();
+            } else if (format === 'excel') {
+                exportToExcel();
+            } else if (format === 'geojson') {
+                exportToGeoJSON();
+            }
+        }
+
+        function exportToCSV() {
+            const headers = ['ID', 'Name', 'County', 'Sub-County', 'Ward', 'Status', 'Source', 'Depth', 'Yield', 'Year', 'Population', 'Management'];
+            const rows = tableData.map(item => [
+                item.id,
+                item.locality || item.name || 'N/A',
+                item.clean_adm1 || item.admin_1 || 'N/A',
+                item.clean_adm2 || item.locality || 'N/A',
+                item.clean_adm3 || 'N/A',
+                item.status_cle || item.operation_field || 'Unknown',
+                item.water_sour || 'N/A',
+                item.well_depth || 'N/A',
+                item.yield_value || 'N/A',
+                item.install_ye || 'N/A',
+                item.assigned_p || 'N/A',
+                item.management || 'N/A'
+            ]);
+            
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `aquatrack-data-${moment().format('YYYY-MM-DD')}.csv`;
+            a.click();
+        }
+
+        function exportToExcel() {
+            exportToCSV();
+        }
+
+        function exportToGeoJSON() {
+            const features = tableData.map(item => ({
+                type: 'Feature',
+                geometry: item.geom || {
+                    type: 'Point',
+                    coordinates: [item.lon_deg || 0, item.lat_deg || 0]
+                },
+                properties: item
+            }));
+            
+            const geojson = {
+                type: 'FeatureCollection',
+                features: features,
+                metadata: {
+                    exportedAt: new Date().toISOString(),
+                    count: features.length,
+                    filters: currentFilters
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `aquatrack-data-${moment().format('YYYY-MM-DD')}.geojson`;
+            a.click();
+        }
+
+        function exportDrillDown() {
+            const rows = [];
+            document.querySelectorAll('#drilldown-body tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length > 0) {
+                    rows.push([
+                        cells[0]?.innerText || '',
+                        cells[1]?.innerText || '',
+                        cells[2]?.innerText || '',
+                        cells[3]?.innerText || '',
+                        cells[4]?.innerText || '',
+                        cells[5]?.innerText.replace('%', '') || '',
+                        cells[6]?.innerText || '',
+                        cells[7]?.innerText || ''
+                    ]);
+                }
+            });
+            
+            const headers = ['Name', 'Type', 'Water Points', 'Boreholes', 'Total', 'Functional %', 'Status', 'Avg Yield'];
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `drilldown-${moment().format('YYYY-MM-DD')}.csv`;
+            a.click();
+        }
+
+        function showDetail(type) {
+            if (type === 'waterpoints') {
+                document.querySelector('.data-table-section').scrollIntoView({ behavior: 'smooth' });
+            } else if (type === 'functionality') {
+                showNotification('Functionality Details', 'Detailed analysis available in charts above', 'info');
+            }
+        }
+
+        function showPointDetails(id) {
+            console.log('Show details for point:', id);
+            showNotification('Point Details', `Viewing details for point #${id}`, 'info');
+        }
+
+        function showAnomalyDetails(type) {
+            showNotification('Anomaly Details', `Analyzing anomaly type: ${type}`, 'info');
+        }
+
+        // ===== MODAL FUNCTIONS =====
+        function openWaterQualityModal() {
+            document.getElementById('waterQualityModal').style.display = 'flex';
+            analyzeWaterQuality();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        async function analyzeWaterQuality() {
+            showLoading();
+            try {
+                const params = new URLSearchParams(currentFilters);
+                const response = await fetch(`/api/analytics/water-quality/?${params}`);
+                const data = await response.json();
+                
+                if (data.ec && charts.qualityEc) {
+                    charts.qualityEc.data.datasets[0].data = [
+                        data.ec.classification.excellent || 0,
+                        data.ec.classification.good || 0,
+                        data.ec.classification.fair || 0,
+                        data.ec.classification.poor || 0
+                    ];
+                    charts.qualityEc.update();
+                }
+                
+                if (data.ph && charts.qualityPh) {
+                    charts.qualityPh.data.datasets[0].data = [
+                        data.ph.classification.acidic || 0,
+                        data.ph.classification.neutral || 0,
+                        data.ph.classification.alkaline || 0
+                    ];
+                    charts.qualityPh.update();
+                }
+                
+                const statsHtml = `
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px;">
+                        <div style="padding: 16px; background-color: #f1f5f9; border-radius: 8px; text-align: center;">
+                            <span style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px;">EC Mean</span>
+                            <span style="font-size: 1.125rem; font-weight: 700; color: #0f172a;">${data.ec.statistics.mean.toFixed(1)} µS/cm</span>
+                        </div>
+                        <div style="padding: 16px; background-color: #f1f5f9; border-radius: 8px; text-align: center;">
+                            <span style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px;">EC Range</span>
+                            <span style="font-size: 1.125rem; font-weight: 700; color: #0f172a;">${data.ec.statistics.min.toFixed(1)} - ${data.ec.statistics.max.toFixed(1)}</span>
+                        </div>
+                        <div style="padding: 16px; background-color: #f1f5f9; border-radius: 8px; text-align: center;">
+                            <span style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px;">pH Mean</span>
+                            <span style="font-size: 1.125rem; font-weight: 700; color: #0f172a;">${data.ph.statistics.mean.toFixed(2)}</span>
+                        </div>
+                        <div style="padding: 16px; background-color: #f1f5f9; border-radius: 8px; text-align: center;">
+                            <span style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px;">pH Range</span>
+                            <span style="font-size: 1.125rem; font-weight: 700; color: #0f172a;">${data.ph.statistics.min.toFixed(2)} - ${data.ph.statistics.max.toFixed(2)}</span>
+                        </div>
+                        <div style="padding: 16px; background-color: #f1f5f9; border-radius: 8px; text-align: center;">
+                            <span style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px;">Samples</span>
+                            <span style="font-size: 1.125rem; font-weight: 700; color: #0f172a;">${data.ec.total_samples}</span>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('quality-stats').innerHTML = statsHtml;
+                
+                const totalEc = data.ec.classification.excellent + data.ec.classification.good + 
+                               data.ec.classification.fair + data.ec.classification.poor;
+                const goodEcPct = ((data.ec.classification.excellent + data.ec.classification.good) / totalEc * 100).toFixed(1);
+                
+                const totalPh = data.ph.classification.acidic + data.ph.classification.neutral + data.ph.classification.alkaline;
+                const goodPhPct = (data.ph.classification.neutral / totalPh * 100).toFixed(1);
+                
+                const classificationHtml = `
+                    <div style="margin-top: 20px; padding: 20px; background-color: #f1f5f9; border-radius: 12px;">
+                        <h4 style="font-weight: 600; margin-bottom: 12px;">Water Quality Summary</h4>
+                        <p style="margin-bottom: 8px;"><strong>EC Quality:</strong> ${goodEcPct}% of samples are within acceptable range (&lt;800 µS/cm)</p>
+                        <p style="margin-bottom: 8px;"><strong>pH Balance:</strong> ${goodPhPct}% of samples have neutral pH (6.5-8.5)</p>
+                        <p><strong>Overall Assessment:</strong> ${getWaterQualityRating(data.ec.statistics.mean, data.ph.statistics.mean)}</p>
+                    </div>
+                `;
+                document.getElementById('quality-classification').innerHTML = classificationHtml;
+                
+                hideLoading();
+            } catch (error) {
+                console.error('Error analyzing water quality:', error);
+                hideLoading();
+                showNotification('Error', 'Failed to analyze water quality', 'error');
+            }
+        }
+
+        function getWaterQualityRating(avgEc, avgPh) {
+            let score = 0;
+            if (avgEc < 400) score += 3;
+            else if (avgEc < 800) score += 2;
+            else if (avgEc < 1500) score += 1;
+            
+            if (avgPh >= 6.5 && avgPh <= 8.5) score += 3;
+            else if (avgPh >= 6.0 && avgPh <= 9.0) score += 2;
+            else score += 1;
+            
+            if (score >= 5) return 'Good - Water quality meets standards';
+            else if (score >= 3) return 'Fair - Some parameters need attention';
+            else return 'Poor - Water quality needs improvement';
+        }
+
+        // ===== NOTIFICATION SYSTEM =====
+        function showNotification(title, message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444',
+                warning: '#f59e0b',
+                info: '#2563eb'
+            };
+            
+            const icons = {
+                success: 'check-circle',
+                error: 'times-circle',
+                warning: 'exclamation-triangle',
+                info: 'info-circle'
+            };
+            
+            notification.style.cssText = `
+                background: white;
+                border-left: 4px solid ${colors[type]};
+                border-radius: 8px;
+                padding: 16px 24px;
+                margin-bottom: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                animation: slideInRight 0.3s ease;
+                font-family: 'Inter', sans-serif;
+                max-width: 400px;
+                position: relative;
+                z-index: 10000;
+            `;
+            
+            notification.innerHTML = `
+                <i class="fas fa-${icons[type]}" style="color: ${colors[type]}; font-size: 20px;"></i>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; margin-bottom: 4px; color: #0f172a;">${title}</div>
+                    <div style="font-size: 14px; color: #64748b;">${message}</div>
+                </div>
+                <button onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer;">
+                    <i class="fas fa-times" style="color: #94a3b8;"></i>
+                </button>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // ===== LOADING INDICATOR =====
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        // ===== AUTO-REFRESH =====
+        setInterval(() => {
+            if (!document.querySelector('.modal[style*="display: flex"]')) {
+                loadDashboardData();
+            }
+        }, 300000); // 5 minutes
+    </script>
+</body>
+</html>

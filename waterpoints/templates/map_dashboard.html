@@ -1,0 +1,1284 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Water Points Mapping System - AquaTrack Pro</title>
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <!-- Leaflet Draw CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"
+    />
+    <!-- Leaflet Fullscreen CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.fullscreen@2.0.0/Control.FullScreen.css"
+    />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <!-- Leaflet Measure CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css"
+    />
+    <!-- Leaflet Marker Cluster CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    />
+    <!-- Leaflet Heatmap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.css"
+    />
+    <!-- Chart.js -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/map_dashboard.css" />
+    <link rel="stylesheet" href="/static/css/water_points.css" />
+    <link rel="stylesheet" href="/static/css/analysis_modals.css" />
+
+    {% block extra_css %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/map_dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/water_points.css' %}">
+    <link rel="stylesheet" href="{% static 'css/analysis_modals.css' %}">
+    {% endblock %}
+    <!-- CSRF Token for Django -->
+    {% csrf_token %}
+    <meta name="csrf-token" content="{{ csrf_token }}" />
+  </head>
+  <body>
+
+    <!-- Navigation -->
+    <div class="nav-container" style="background: linear-gradient(135deg, #0a1a2f 0%, #1e3a5f 100%); border-bottom: 1px solid rgba(255, 255, 255, 0.1); position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <div class="nav-wrapper" style="max-width: 1400px; margin: 0 auto; padding: 0 24px;">
+            <nav class="navbar" style="display: flex; align-items: center; justify-content: space-between; height: 80px; gap: 40px;">
+                <!-- Logo -->
+                <a href="{% url 'landing' %}" class="nav-logo" id="homeLink" style="display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.3s ease;">
+                    <div class="logo-icon" style="width: 48px; height: 48px; background: linear-gradient(135deg, #0e9e8f, #1e88e5); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ffffff; box-shadow: 0 4px 15px rgba(46, 189, 176, 0.3);">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <div class="logo-text" style="display: flex; flex-direction: column;">
+                        <span class="logo-main" style="font-size: 20px; font-weight: 700; color: #ffffff; line-height: 1.2;">AquaTrack Pro</span>
+                        <span class="logo-sub" style="font-size: 12px; color: #94a3b8; letter-spacing: 0.3px;">Water Resources Management</span>
+                    </div>
+                </a>
+
+                <!-- Navigation Tabs -->
+                <div class="nav-tabs" style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                    <a href="{% url 'landing' %}" class="nav-tab {% if request.resolver_match.url_name == 'landing' %}active{% endif %}" data-tab="home" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; color: {% if request.resolver_match.url_name == 'landing' %}#ffffff{% else %}#94a3b8{% endif %}; text-decoration: none; border-radius: 8px; background: {% if request.resolver_match.url_name == 'landing' %}rgba(46, 189, 176, 0.15){% else %}transparent{% endif %}; transition: all 0.3s ease; font-weight: {% if request.resolver_match.url_name == 'landing' %}600{% else %}500{% endif %};">
+                        <i class="fas fa-home" style="font-size: 16px;"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="{% url 'map_dashboard' %}" class="nav-tab {% if request.resolver_match.url_name == 'map_dashboard' %}active{% endif %}" data-tab="dashboard" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; color: {% if request.resolver_match.url_name == 'map_dashboard' %}#ffffff{% else %}#94a3b8{% endif %}; text-decoration: none; border-radius: 8px; background: {% if request.resolver_match.url_name == 'map_dashboard' %}rgba(46, 189, 176, 0.15){% else %}transparent{% endif %}; transition: all 0.3s ease; font-weight: {% if request.resolver_match.url_name == 'map_dashboard' %}600{% else %}500{% endif %};">
+                        <i class="fas fa-map-marked-alt" style="font-size: 16px;"></i>
+                        <span>Map Dashboard</span>
+                    </a>
+                    <a href="{% url 'analytics_dashboard' %}" class="nav-tab {% if request.resolver_match.url_name == 'analytics_dashboard' %}active{% endif %}" data-tab="visualizations" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; color: {% if request.resolver_match.url_name == 'analytics_dashboard' %}#ffffff{% else %}#94a3b8{% endif %}; text-decoration: none; border-radius: 8px; background: {% if request.resolver_match.url_name == 'analytics_dashboard' %}rgba(46, 189, 176, 0.15){% else %}transparent{% endif %}; transition: all 0.3s ease; font-weight: {% if request.resolver_match.url_name == 'analytics_dashboard' %}600{% else %}500{% endif %};">
+                        <i class="fas fa-chart-line" style="font-size: 16px;"></i>
+                        <span>Analytics</span>
+                    </a>
+                </div>
+
+                <!-- User Menu & Actions -->
+                <div class="nav-user" style="display: flex; align-items: center; gap: 24px;">
+                    <div class="quick-actions" style="display: flex; align-items: center; gap: 8px;">
+                        <button class="action-btn notification-badge" id="notificationBtn" style="background: rgba(255, 255, 255, 0.1); border: none; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ffffff; cursor: pointer; position: relative; transition: all 0.3s ease;">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: #ffffff; font-size: 10px; padding: 2px 6px; border-radius: 9999px; border: 2px solid #1e3a5f;">3</span>
+                        </button>
+                        <button class="action-btn" id="themeToggle" style="background: rgba(255, 255, 255, 0.1); border: none; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ffffff; cursor: pointer; transition: all 0.3s ease;">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+
+                    <div class="user-menu" style="position: relative;">
+                        <div class="user-menu-btn" style="display: flex; align-items: center; gap: 12px; padding: 6px 12px 6px 6px; background: rgba(255, 255, 255, 0.1); border-radius: 40px; cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <div class="user-avatar" style="width: 36px; height: 36px; background: linear-gradient(135deg, #0e9e8f, #1e88e5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 600; font-size: 14px;">
+                                <span>AD</span>
+                            </div>
+                            <div class="user-info" style="display: flex; flex-direction: column;">
+                                <span class="user-name" style="font-size: 14px; font-weight: 600; color: #ffffff;">Admin User</span>
+                                <span class="user-role" style="font-size: 12px; color: #94a3b8;">Water Manager</span>
+                            </div>
+                            <i class="fas fa-chevron-down" style="color: #94a3b8; font-size: 12px;"></i>
+                        </div>
+
+                        <div class="user-dropdown" style="position: absolute; top: 100%; right: 0; margin-top: 8px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); min-width: 200px; display: none; z-index: 1000; border: 1px solid #e2e8f0;">
+                            <a href="#" class="dropdown-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #1e293b; text-decoration: none; transition: all 0.3s ease; border-bottom: 1px solid #e2e8f0;">
+                                <i class="fas fa-user" style="width: 16px; color: #64748b;"></i>
+                                <span style="font-size: 14px;">Profile</span>
+                            </a>
+                            <a href="#" class="dropdown-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #1e293b; text-decoration: none; transition: all 0.3s ease; border-bottom: 1px solid #e2e8f0;">
+                                <i class="fas fa-cog" style="width: 16px; color: #64748b;"></i>
+                                <span style="font-size: 14px;">Settings</span>
+                            </a>
+                            <a href="#" class="dropdown-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #1e293b; text-decoration: none; transition: all 0.3s ease;">
+                                <i class="fas fa-sign-out-alt" style="width: 16px;"></i>
+                                <span style="font-size: 14px;">Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+      <!-- Notification -->
+      <div class="notification" id="notification">
+        <div class="notification-icon">
+          <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="notification-content">
+          <div class="notification-title" id="notificationTitle">
+            Information
+          </div>
+          <div class="notification-message" id="notificationMessage">
+            Loading water points...
+          </div>
+        </div>
+        <button class="notification-close" id="notificationClose">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="dashboard-sidebar fade-in-up">
+        <div class="sidebar-header">
+          <div class="logo-container">
+            <div class="logo-icon">
+              <i class="fas fa-water"></i>
+            </div>
+            <div>
+              <div class="logo-text">AquaTrack Pro Mapper</div>
+              <div class="logo-subtext">Water Points Monitoring System</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-content">
+          <a href="{% url 'landing' %}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Back to Home
+          </a>
+
+          <!-- Filter Section -->
+          <div class="section-card">
+            <h3 class="section-title">
+              <i class="fas fa-filter"></i>
+              Area & Water Points Filter
+            </h3>
+
+            <div class="filter-section">
+              <!-- Water Point Model Selection -->
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-database"></i>
+                  Water Point Type
+                </label>
+                <select class="select-dropdown" id="model-type-select">
+                  <option value="all" selected>All Water Points</option>
+                  <option value="waterpoints">Water Points (Enhanced Data)</option>
+                  <option value="boreholes">Boreholes (Legacy Data)</option>
+                </select>
+                <span class="filter-help-text"
+                  >Select which dataset to display</span
+                >
+              </div>
+
+              <!-- County Filter -->
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-map"></i>
+                  County Selection
+                </label>
+                <select class="select-dropdown" id="county-select">
+                  <option value="all" selected>All Counties</option>
+                  {% for county in counties %}
+                  <option value="{{ county.id }}">
+                    {{ county.county|default:"Unknown County" }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Subcounty Filter -->
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-map-marked-alt"></i>
+                  Sub-County Selection
+                </label>
+                <select class="select-dropdown" id="subcounty-select" disabled>
+                  <option value="all" selected>All Sub-Counties</option>
+                </select>
+              </div>
+
+              <!-- Ward Filter -->
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-map-pin"></i>
+                  Ward Selection
+                </label>
+                <select class="select-dropdown" id="ward-select" disabled>
+                  <option value="all" selected>All Wards</option>
+                </select>
+              </div>
+
+              <!-- Status Filter -->
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-check-circle"></i>
+                  Operational Status
+                </label>
+                <select class="select-dropdown" id="status-select">
+                  <option value="all" selected>All Statuses</option>
+                  <option value="functional">Functional</option>
+                  <option value="non_functional">Non-Functional</option>
+                  <option value="needs_repair">Needs Repair</option>
+                  <option value="unknown">Unknown</option>
+                </select>
+              </div>
+
+              <!-- Source Type Filter -->
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-tint"></i>
+                  Water Source Type
+                </label>
+                <select class="select-dropdown" id="source-type-select">
+                  <option value="all" selected>All Sources</option>
+                  {% for source in source_types %}
+                  <option value="{{ source.water_sour }}">
+                    {{ source.water_sour }} ({{ source.count }})
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Year Range Filter -->
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-calendar"></i>
+                  Installation Year Range
+                </label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="number" id="year-from" class="select-dropdown" placeholder="From" min="1900" max="{{ year_max }}" value="">
+                  <input type="number" id="year-to" class="select-dropdown" placeholder="To" min="1900" max="{{ year_max }}" value="">
+                </div>
+              </div>
+
+              <!-- Depth Range Filter -->
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-arrow-down"></i>
+                  Well Depth Range (m)
+                </label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="number" id="depth-from" class="select-dropdown" placeholder="Min" min="0" step="1" value="">
+                  <input type="number" id="depth-to" class="select-dropdown" placeholder="Max" min="0" step="1" value="">
+                </div>
+              </div>
+
+              <!-- Yield Range Filter -->
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-chart-line"></i>
+                  Yield Range (m³/h)
+                </label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="number" id="yield-from" class="select-dropdown" placeholder="Min" min="0" step="0.1" value="">
+                  <input type="number" id="yield-to" class="select-dropdown" placeholder="Max" min="0" step="0.1" value="">
+                </div>
+              </div>
+
+              <!-- Filter Actions -->
+              <div class="filter-actions">
+                <button id="apply-filter" class="filter-action-btn primary">
+                  <div class="filter-action-icon">
+                    <i class="fas fa-check"></i>
+                  </div>
+                  <div class="filter-action-name">Apply Filter</div>
+                </button>
+                <button id="reset-filter" class="filter-action-btn">
+                  <div class="filter-action-icon">
+                    <i class="fas fa-redo"></i>
+                  </div>
+                  <div class="filter-action-name">Reset All</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map Area -->
+      <div class="map-area">
+        <div id="map"></div>
+
+        <!-- Top Controls Bar -->
+        <div class="top-controls-bar">
+          <!-- Layer Controls Dropdown -->
+          <div class="control-dropdown">
+            <button class="control-dropdown-btn" id="layers-dropdown-btn">
+              <i class="fas fa-layer-group"></i>
+              Map Layers
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="control-dropdown-content" id="layers-dropdown-content">
+              <div class="control-dropdown-section">
+                <div class="control-dropdown-title">
+                  <i class="fas fa-toggle-on"></i>
+                  Boundary Layers
+                </div>
+                <div class="layer-controls-dropdown">
+                  <!-- County Layer -->
+                  <div class="layer-control-item-dropdown active" id="county-layer-control-dropdown">
+                    <div class="layer-info-dropdown">
+                      <div class="layer-icon-dropdown" style="background: linear-gradient(135deg, #2563eb, #3b82f6);">
+                        <i class="fas fa-map"></i>
+                      </div>
+                      <div class="layer-text-dropdown">
+                        <span class="layer-name-dropdown">County Boundaries</span>
+                        <span class="layer-count-dropdown" id="county-count-dropdown">{{ total_counties }} counties</span>
+                      </div>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="toggle-counties-dropdown" checked />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <!-- Subcounty Layer -->
+                  <div class="layer-control-item-dropdown active" id="subcounty-layer-control-dropdown">
+                    <div class="layer-info-dropdown">
+                      <div class="layer-icon-dropdown" style="background: linear-gradient(135deg, #14b8a6, #2dd4bf);">
+                        <i class="fas fa-map-marked-alt"></i>
+                      </div>
+                      <div class="layer-text-dropdown">
+                        <span class="layer-name-dropdown">Sub-County Boundaries</span>
+                        <span class="layer-count-dropdown" id="subcounty-count-dropdown">{{ total_subcounties }} sub-counties</span>
+                      </div>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="toggle-subcounties-dropdown" />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <!-- Ward Layer -->
+                  <div class="layer-control-item-dropdown active" id="ward-layer-control-dropdown">
+                    <div class="layer-info-dropdown">
+                      <div class="layer-icon-dropdown" style="background: linear-gradient(135deg, #f97316, #fb923c);">
+                        <i class="fas fa-map-pin"></i>
+                      </div>
+                      <div class="layer-text-dropdown">
+                        <span class="layer-name-dropdown">Ward Boundaries</span>
+                        <span class="layer-count-dropdown" id="ward-count-dropdown">{{ total_wards }} wards</span>
+                      </div>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="toggle-wards-dropdown" />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <!-- Water Points Layer -->
+                  <div class="layer-control-item-dropdown active" id="water-points-layer-control-dropdown">
+                    <div class="layer-info-dropdown">
+                      <div class="layer-icon-dropdown" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">
+                        <i class="fas fa-droplet"></i>
+                      </div>
+                      <div class="layer-text-dropdown">
+                        <span class="layer-name-dropdown">Water Points</span>
+                        <span class="layer-count-dropdown" id="water-points-count-dropdown">{{ total_water_points }} points</span>
+                      </div>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="toggle-water-points-dropdown" checked />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <!-- Boreholes Layer -->
+                  <div class="layer-control-item-dropdown active" id="boreholes-layer-control-dropdown">
+                    <div class="layer-info-dropdown">
+                      <div class="layer-icon-dropdown" style="background: linear-gradient(135deg, #10b981, #34d399);">
+                        <i class="fas fa-water"></i>
+                      </div>
+                      <div class="layer-text-dropdown">
+                        <span class="layer-name-dropdown">Boreholes</span>
+                        <span class="layer-count-dropdown" id="boreholes-count-dropdown">{{ total_boreholes }} points</span>
+                      </div>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="toggle-boreholes-dropdown" checked />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="control-dropdown-section">
+                <div class="control-dropdown-title">
+                  <i class="fas fa-tint"></i>
+                  Display Mode
+                </div>
+                <div class="display-options">
+                  <div class="display-option active" data-display="individual">
+                    <div class="display-option-icon">
+                      <i class="fas fa-dot-circle"></i>
+                    </div>
+                    <div class="display-option-name">Individual Points</div>
+                  </div>
+                  <div class="display-option" data-display="cluster">
+                    <div class="display-option-icon">
+                      <i class="fas fa-th-large"></i>
+                    </div>
+                    <div class="display-option-name">Clustered</div>
+                  </div>
+                  <div class="display-option" data-display="heatmap">
+                    <div class="display-option-icon">
+                      <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="display-option-name">Heat Map</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Analysis Tools Dropdown (NEW) -->
+          <div class="control-dropdown">
+            <button class="control-dropdown-btn" id="analysis-dropdown-btn">
+              <i class="fas fa-tools"></i>
+              Analysis Tools
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="control-dropdown-content" id="analysis-dropdown-content">
+              <div class="control-dropdown-section">
+                <div class="control-dropdown-title">
+                  <i class="fas fa-chart-line"></i>
+                  Spatial Analysis
+                </div>
+                <div class="analysis-tools-grid">
+                  <button class="analysis-tool-btn-dropdown" id="btn-heatmap-dropdown">
+                    <div class="analysis-tool-icon-dropdown">
+                      <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="analysis-tool-name-dropdown">Heat Map</div>
+                  </button>
+                  <button class="analysis-tool-btn-dropdown" id="btn-cluster-dropdown">
+                    <div class="analysis-tool-icon-dropdown">
+                      <i class="fas fa-th-large"></i>
+                    </div>
+                    <div class="analysis-tool-name-dropdown">Cluster Analysis</div>
+                  </button>
+                  <button class="analysis-tool-btn-dropdown" id="btn-distribution-dropdown">
+                    <div class="analysis-tool-icon-dropdown">
+                      <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="analysis-tool-name-dropdown">Distribution</div>
+                  </button>
+                  <button class="analysis-tool-btn-dropdown" id="btn-buffer-dropdown">
+                    <div class="analysis-tool-icon-dropdown">
+                      <i class="fas fa-circle"></i>
+                    </div>
+                    <div class="analysis-tool-name-dropdown">Buffer Analysis</div>
+                  </button>
+                  <button class="analysis-tool-btn-dropdown" id="btn-correlation-dropdown">
+                    <div class="analysis-tool-icon-dropdown">
+                      <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <div class="analysis-tool-name-dropdown">Correlation</div>
+                  </button>
+                  <button class="analysis-tool-btn-dropdown" id="btn-water-quality-dropdown">
+                    <div class="analysis-tool-icon-dropdown">
+                      <i class="fas fa-flask"></i>
+                    </div>
+                    <div class="analysis-tool-name-dropdown">Water Quality</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Map Tools Dropdown -->
+          <div class="control-dropdown">
+            <button class="control-dropdown-btn" id="tools-dropdown-btn">
+              <i class="fas fa-tools"></i>
+              Map Tools
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="control-dropdown-content" id="tools-dropdown-content">
+              <div class="control-dropdown-section">
+                <div class="control-dropdown-title">
+                  <i class="fas fa-drafting-compass"></i>
+                  Drawing & Measurement
+                </div>
+                <div class="map-tools-grid">
+                  <button class="map-tool-btn-dropdown" id="tool-measure-dropdown" title="Measure Distance">
+                    <div class="map-tool-icon-dropdown">
+                      <i class="fas fa-ruler"></i>
+                    </div>
+                    <div class="map-tool-name-dropdown">Measure</div>
+                  </button>
+                  <button class="map-tool-btn-dropdown" id="tool-draw-dropdown" title="Draw Shapes">
+                    <div class="map-tool-icon-dropdown">
+                      <i class="fas fa-draw-polygon"></i>
+                    </div>
+                    <div class="map-tool-name-dropdown">Draw</div>
+                  </button>
+                  <button class="map-tool-btn-dropdown" id="tool-clear-dropdown" title="Clear Selection">
+                    <div class="map-tool-icon-dropdown">
+                      <i class="fas fa-broom"></i>
+                    </div>
+                    <div class="map-tool-name-dropdown">Clear</div>
+                  </button>
+                </div>
+              </div>
+
+              <div class="control-dropdown-section">
+                <div class="control-dropdown-title">
+                  <i class="fas fa-file-export"></i>
+                  Export & Print
+                </div>
+                <div class="map-tools-grid">
+                  <button class="map-tool-btn-dropdown" id="tool-print-dropdown" title="Print Map">
+                    <div class="map-tool-icon-dropdown">
+                      <i class="fas fa-print"></i>
+                    </div>
+                    <div class="map-tool-name-dropdown">Print</div>
+                  </button>
+                  <button class="map-tool-btn-dropdown" id="tool-export-dropdown" title="Export Data">
+                    <div class="map-tool-icon-dropdown">
+                      <i class="fas fa-download"></i>
+                    </div>
+                    <div class="map-tool-name-dropdown">Export</div>
+                  </button>
+                  <button class="map-tool-btn-dropdown" id="tool-refresh-dropdown" title="Refresh Data">
+                    <div class="map-tool-icon-dropdown">
+                      <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <div class="map-tool-name-dropdown">Refresh</div>
+                  </button>
+                </div>
+              </div>
+
+              <div class="control-dropdown-section">
+                <div class="control-dropdown-title">
+                  <i class="fas fa-filter"></i>
+                  Advanced Tools
+                </div>
+                <div class="map-tools-grid">
+                  <button class="map-tool-btn-dropdown" id="tool-search-dropdown" title="Search Points">
+                    <div class="map-tool-icon-dropdown">
+                      <i class="fas fa-search"></i>
+                    </div>
+                    <div class="map-tool-name-dropdown">Search</div>
+                  </button>
+                  <button class="map-tool-btn-dropdown" id="tool-buffer-dropdown" title="Buffer Analysis">
+                    <div class="map-tool-icon-dropdown">
+                      <i class="fas fa-circle"></i>
+                    </div>
+                    <div class="map-tool-name-dropdown">Buffer</div>
+                  </button>
+                  <button class="map-tool-btn-dropdown" id="tool-anomaly-dropdown" title="Anomaly Detection">
+                    <div class="map-tool-icon-dropdown">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="map-tool-name-dropdown">Anomalies</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Base Maps Dropdown -->
+          <div class="control-dropdown">
+            <button class="control-dropdown-btn" id="basemaps-dropdown-btn">
+              <i class="fas fa-layer-group"></i>
+              Base Maps
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="control-dropdown-content" id="basemaps-dropdown-content">
+              <div class="control-dropdown-section">
+                <div class="control-dropdown-title">
+                  <i class="fas fa-globe"></i>
+                  Select Base Map
+                </div>
+                <div class="basemap-options">
+                  <div class="basemap-option-dropdown active" data-basemap="osm">
+                    <div class="basemap-icon-dropdown">
+                      <i class="fas fa-road"></i>
+                    </div>
+                    <div class="basemap-name-dropdown">OpenStreetMap Streets</div>
+                  </div>
+                  <div class="basemap-option-dropdown" data-basemap="satellite">
+                    <div class="basemap-icon-dropdown">
+                      <i class="fas fa-satellite"></i>
+                    </div>
+                    <div class="basemap-name-dropdown">Satellite Imagery</div>
+                  </div>
+                  <div class="basemap-option-dropdown" data-basemap="topo">
+                    <div class="basemap-icon-dropdown">
+                      <i class="fas fa-mountain"></i>
+                    </div>
+                    <div class="basemap-name-dropdown">Topographic Map</div>
+                  </div>
+                  <div class="basemap-option-dropdown" data-basemap="dark">
+                    <div class="basemap-icon-dropdown">
+                      <i class="fas fa-moon"></i>
+                    </div>
+                    <div class="basemap-name-dropdown">Dark Theme</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation Tools -->
+          <div class="navigation-controls">
+            <button class="nav-control-btn" id="zoom-in-btn" title="Zoom In">
+              <i class="fas fa-search-plus"></i>
+            </button>
+            <button class="nav-control-btn" id="zoom-out-btn" title="Zoom Out">
+              <i class="fas fa-search-minus"></i>
+            </button>
+            <button class="nav-control-btn" id="reset-view-btn" title="Reset View">
+              <i class="fas fa-crosshairs"></i>
+            </button>
+            <button class="nav-control-btn" id="locate-me-btn" title="Locate Me">
+              <i class="fas fa-location-arrow"></i>
+            </button>
+            <button class="nav-control-btn" id="fullscreen-btn" title="Fullscreen">
+              <i class="fas fa-expand"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Legend Container -->
+        <div class="legend-container fade-in-up" id="legend-container">
+          <div class="legend-header">
+            <div class="control-dropdown-title">
+              <i class="fas fa-palette"></i>
+              Map Legend
+            </div>
+            <button class="legend-toggle" id="legend-toggle">
+              <i class="fas fa-chevron-up"></i>
+            </button>
+          </div>
+          <div class="legend-content" id="legend-content">
+            <div class="legend-section">
+              <div class="legend-section-title">
+                <i class="fas fa-droplet"></i>
+                Water Points
+              </div>
+              <div class="legend-items">
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #2ecc71"></div>
+                  <span class="legend-text">Functional</span>
+                  <span class="legend-count" id="legend-functional">{{ water_point_statuses.functional }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #e74c3c"></div>
+                  <span class="legend-text">Non-Functional</span>
+                  <span class="legend-count" id="legend-nonfunctional">{{ water_point_statuses.non_functional }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #f39c12"></div>
+                  <span class="legend-text">Needs Repair</span>
+                  <span class="legend-count" id="legend-repair">{{ water_point_statuses.needs_repair }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #95a5a6"></div>
+                  <span class="legend-text">Unknown</span>
+                  <span class="legend-count" id="legend-unknown">{{ water_point_statuses.unknown }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="legend-section">
+              <div class="legend-section-title">
+                <i class="fas fa-water"></i>
+                Boreholes
+              </div>
+              <div class="legend-items">
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #2ecc71"></div>
+                  <span class="legend-text">Functional</span>
+                  <span class="legend-count" id="legend-borehole-functional">{{ borehole_statuses.functional }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #e74c3c"></div>
+                  <span class="legend-text">Non-Functional</span>
+                  <span class="legend-count" id="legend-borehole-nonfunctional">{{ borehole_statuses.non_functional }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #f39c12"></div>
+                  <span class="legend-text">Needs Repair</span>
+                  <span class="legend-count" id="legend-borehole-repair">{{ borehole_statuses.needs_repair }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #95a5a6"></div>
+                  <span class="legend-text">Unknown</span>
+                  <span class="legend-count" id="legend-borehole-unknown">{{ borehole_statuses.unknown }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="legend-section">
+              <div class="legend-section-title">
+                <i class="fas fa-draw-polygon"></i>
+                Boundaries
+              </div>
+              <div class="legend-items">
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #2563eb; opacity: 0.3; border: 2px solid #2563eb;"></div>
+                  <span class="legend-text">County Boundary</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #14b8a6; opacity: 0.2; border: 1.5px solid #14b8a6;"></div>
+                  <span class="legend-text">Sub-County Boundary</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color" style="background: #f97316; opacity: 0.1; border: 1px solid #f97316;"></div>
+                  <span class="legend-text">Ward Boundary</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="info-panel" id="infoPanel">
+          <div class="info-header">
+            <div class="info-title">
+              <i class="fas fa-info-circle"></i>
+              <span id="infoTitle">Water Point Information</span>
+            </div>
+            <button class="info-close" id="infoClose">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="info-content" id="infoContent">
+            <p style="color: var(--light-text-secondary); font-style: italic">
+              Click on any water point or borehole to view detailed information.
+            </p>
+          </div>
+        </div>
+
+        <!-- Mini Statistics Panel -->
+        <div class="mini-stats-panel" id="miniStatsPanel">
+          <div class="mini-stats-header">
+            <i class="fas fa-chart-simple"></i>
+            <span>Current View Stats</span>
+            <button class="mini-stats-toggle" id="miniStatsToggle">
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          </div>
+          <div class="mini-stats-content" id="miniStatsContent">
+            <div class="mini-stat-row">
+              <span class="mini-stat-label">Visible Points:</span>
+              <span class="mini-stat-value" id="visible-points-count">0</span>
+            </div>
+            <div class="mini-stat-row">
+              <span class="mini-stat-label">Functional:</span>
+              <span class="mini-stat-value" id="visible-functional-count">0</span>
+            </div>
+            <div class="mini-stat-row">
+              <span class="mini-stat-label">Non-Functional:</span>
+              <span class="mini-stat-value" id="visible-nonfunctional-count">0</span>
+            </div>
+            <div class="mini-stat-row">
+              <span class="mini-stat-label">Needs Repair:</span>
+              <span class="mini-stat-value" id="visible-repair-count">0</span>
+            </div>
+            <div class="mini-stat-row">
+              <span class="mini-stat-label">Avg Yield:</span>
+              <span class="mini-stat-value" id="visible-avg-yield">0 m³/h</span>
+            </div>
+            <div class="mini-stat-row">
+              <span class="mini-stat-label">Counties:</span>
+              <span class="mini-stat-value" id="visible-counties-count">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simplification Indicator -->
+        <div class="simplification-indicator" id="simplification-indicator"></div>
+      </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div class="modal" id="searchModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i class="fas fa-search"></i> Search Water Points</h3>
+          <button class="modal-close" id="searchModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="search-input-group">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search by county, subcounty, ward, or source..."
+              class="search-input"
+            />
+            <button id="search-button" class="search-button">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+          <div id="search-results" class="search-results">
+            <!-- Search results will appear here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal" id="exportModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i class="fas fa-download"></i> Export Data</h3>
+          <button class="modal-close" id="exportModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="export-options">
+            <h4>Select Export Format</h4>
+            <div class="export-buttons">
+              <button class="export-btn active" data-format="geojson">
+                <i class="fas fa-file-code"></i>
+                GeoJSON
+              </button>
+              <button class="export-btn" data-format="csv">
+                <i class="fas fa-file-csv"></i>
+                CSV
+              </button>
+              <button class="export-btn" data-format="kml">
+                <i class="fas fa-file"></i>
+                KML
+              </button>
+            </div>
+
+            <h4>Select Data to Export</h4>
+            <div class="export-data-options">
+              <label class="export-checkbox">
+                <input type="checkbox" id="export-water-points" checked />
+                Water Points
+              </label>
+              <label class="export-checkbox">
+                <input type="checkbox" id="export-boreholes" checked />
+                Boreholes
+              </label>
+              <label class="export-checkbox">
+                <input type="checkbox" id="export-boundaries" />
+                Administrative Boundaries
+              </label>
+            </div>
+
+            <h4>Include Analytics</h4>
+            <div class="export-data-options">
+              <label class="export-checkbox">
+                <input type="checkbox" id="export-summary" />
+                Summary Statistics
+              </label>
+              <label class="export-checkbox">
+                <input type="checkbox" id="export-anomalies" />
+                Anomaly Detection
+              </label>
+            </div>
+
+            <div class="export-action">
+              <button id="export-download-btn" class="export-download-btn">
+                <i class="fas fa-download"></i>
+                Download
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buffer Analysis Modal -->
+    <div class="modal" id="bufferModal">
+      <div class="modal-content modal-card">
+        <div class="modal-header">
+          <h3><i class="fas fa-circle"></i> Buffer Analysis</h3>
+          <button class="modal-close" id="bufferModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="analysis-options">
+            <div class="option-group">
+              <label for="buffer-distance">Buffer Distance (km):</label>
+              <input
+                type="number"
+                id="buffer-distance"
+                min="0.1"
+                max="100"
+                step="0.1"
+                value="5"
+                class="analysis-input"
+              />
+            </div>
+
+            <div class="option-group">
+              <label for="buffer-location">Buffer Location:</label>
+              <select id="buffer-location" class="analysis-select">
+                <option value="click">Click on Map</option>
+                <option value="current">Current View Center</option>
+                <option value="selected">Selected Point</option>
+              </select>
+            </div>
+
+            <div class="option-group">
+              <label for="buffer-analysis-type">Analysis Type:</label>
+              <select id="buffer-analysis-type" class="analysis-select">
+                <option value="count">Count Points</option>
+                <option value="summary">Summary Statistics</option>
+                <option value="export">Export Points</option>
+              </select>
+            </div>
+
+            <button id="apply-buffer-btn" class="analysis-btn primary">
+              <i class="fas fa-play"></i>
+              Apply Buffer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heat Map Modal -->
+    <div class="modal" id="heatmapModal">
+      <div class="modal-content modal-card">
+        <div class="modal-header">
+          <h3><i class="fas fa-fire"></i> Heat Map Configuration</h3>
+          <button class="modal-close" id="heatmapModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="analysis-options">
+            <div class="option-group">
+              <label for="heatmap-metric">Heat Metric:</label>
+              <select id="heatmap-metric" class="analysis-select">
+                <option value="density">Point Density</option>
+                <option value="functionality">Functionality</option>
+                <option value="yield">Yield</option>
+              </select>
+            </div>
+
+            <div class="option-group">
+              <label for="heatmap-radius">Radius (pixels): <span id="heatmap-radius-value">25</span></label>
+              <input
+                type="range"
+                id="heatmap-radius"
+                min="5"
+                max="50"
+                step="1"
+                value="25"
+                class="analysis-range"
+              />
+            </div>
+
+            <div class="option-group">
+              <label for="heatmap-blur">Blur: <span id="heatmap-blur-value">15</span></label>
+              <input
+                type="range"
+                id="heatmap-blur"
+                min="1"
+                max="30"
+                step="1"
+                value="15"
+                class="analysis-range"
+              />
+            </div>
+
+            <div class="option-group">
+              <label for="heatmap-opacity">Opacity: <span id="heatmap-opacity-value">0.8</span></label>
+              <input
+                type="range"
+                id="heatmap-opacity"
+                min="0.1"
+                max="1"
+                step="0.1"
+                value="0.8"
+                class="analysis-range"
+              />
+            </div>
+
+            <button id="apply-heatmap-btn" class="analysis-btn primary">
+              <i class="fas fa-play"></i>
+              Generate Heat Map
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cluster Analysis Modal -->
+    <div class="modal" id="clusterModal">
+      <div class="modal-content modal-card">
+        <div class="modal-header">
+          <h3><i class="fas fa-th-large"></i> Cluster Analysis</h3>
+          <button class="modal-close" id="clusterModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="analysis-options">
+            <div class="option-group">
+              <label for="cluster-count">Number of Clusters:</label>
+              <input
+                type="number"
+                id="cluster-count"
+                min="2"
+                max="20"
+                step="1"
+                value="5"
+                class="analysis-input"
+              />
+            </div>
+
+            <div class="option-group">
+              <label for="cluster-metric">Cluster By:</label>
+              <select id="cluster-metric" class="analysis-select">
+                <option value="location">Geographic Location</option>
+                <option value="status">Status</option>
+                <option value="yield">Yield</option>
+                <option value="depth">Depth</option>
+              </select>
+            </div>
+
+            <div class="option-group">
+              <label for="cluster-dataset">Dataset:</label>
+              <select id="cluster-dataset" class="analysis-select">
+                <option value="both">Both (Water Points & Boreholes)</option>
+                <option value="waterpoints">Water Points Only</option>
+                <option value="boreholes">Boreholes Only</option>
+              </select>
+            </div>
+
+            <button id="apply-cluster-btn" class="analysis-btn primary">
+              <i class="fas fa-play"></i>
+              Run Cluster Analysis
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Distribution Analysis Modal -->
+    <div class="modal" id="distributionModal">
+      <div class="modal-content modal-lg modal-card">
+        <div class="modal-header">
+          <h3><i class="fas fa-chart-bar"></i> Distribution Analysis</h3>
+          <button class="modal-close" id="distributionModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="analysis-options">
+            <div class="option-row">
+              <div class="option-group">
+                <label for="distribution-metric">Metric:</label>
+                <select id="distribution-metric" class="analysis-select">
+                  <option value="depth">Well Depth</option>
+                  <option value="yield">Yield</option>
+                  <option value="population">Population Served</option>
+                  <option value="criticality">Criticality</option>
+                  <option value="ph">pH</option>
+                  <option value="ec">Electrical Conductivity</option>
+                </select>
+              </div>
+
+              <div class="option-group">
+                <label for="distribution-bins">Number of Bins:</label>
+                <input
+                  type="number"
+                  id="distribution-bins"
+                  min="5"
+                  max="50"
+                  step="1"
+                  value="20"
+                  class="analysis-input"
+                />
+              </div>
+            </div>
+
+            <button id="generate-distribution-btn" class="analysis-btn primary">
+              <i class="fas fa-chart-bar"></i>
+              Generate Distribution
+            </button>
+          </div>
+
+          <div class="analysis-results">
+            <canvas id="distribution-chart"></canvas>
+            
+            <div class="stats-panel" id="distribution-stats">
+              <!-- Statistics will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Correlation Analysis Modal -->
+    <div class="modal" id="correlationModal">
+      <div class="modal-content modal-lg modal-card">
+        <div class="modal-header">
+          <h3><i class="fas fa-project-diagram"></i> Correlation Analysis</h3>
+          <button class="modal-close" id="correlationModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="analysis-options">
+            <div class="option-row">
+              <div class="option-group">
+                <label for="correlation-var-x">Variable X:</label>
+                <select id="correlation-var-x" class="analysis-select">
+                  <option value="depth">Well Depth</option>
+                  <option value="yield">Yield</option>
+                  <option value="population">Population Served</option>
+                  <option value="ph">pH</option>
+                  <option value="ec">Electrical Conductivity</option>
+                  <option value="temperature">Temperature</option>
+                </select>
+              </div>
+
+              <div class="option-group">
+                <label for="correlation-var-y">Variable Y:</label>
+                <select id="correlation-var-y" class="analysis-select">
+                  <option value="yield">Yield</option>
+                  <option value="depth">Well Depth</option>
+                  <option value="population">Population Served</option>
+                  <option value="ph">pH</option>
+                  <option value="ec">Electrical Conductivity</option>
+                  <option value="temperature">Temperature</option>
+                </select>
+              </div>
+            </div>
+
+            <button id="calculate-correlation-btn" class="analysis-btn primary">
+              <i class="fas fa-calculator"></i>
+              Calculate Correlation
+            </button>
+          </div>
+
+          <div class="analysis-results">
+            <canvas id="correlation-chart"></canvas>
+            
+            <div class="stats-panel" id="correlation-stats">
+              <!-- Correlation statistics will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Water Quality Modal -->
+    <div class="modal" id="waterQualityModal">
+      <div class="modal-content modal-lg modal-card">
+        <div class="modal-header">
+          <h3><i class="fas fa-flask"></i> Water Quality Analysis</h3>
+          <button class="modal-close" id="waterQualityModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="analysis-options">
+            <button id="analyze-quality-btn" class="analysis-btn primary">
+              <i class="fas fa-flask"></i>
+              Analyze Water Quality
+            </button>
+          </div>
+
+          <div class="quality-results">
+            <div class="charts-grid">
+              <canvas id="quality-ec-chart"></canvas>
+              <canvas id="quality-ph-chart"></canvas>
+            </div>
+            
+            <div class="stats-panel" id="quality-stats">
+              <!-- Water quality statistics will be populated here -->
+            </div>
+
+            <div class="classification-panel" id="quality-classification">
+              <!-- Water quality classification will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Anomaly Detection Modal -->
+    <div class="modal" id="anomalyModal">
+      <div class="modal-content modal-card">
+        <div class="modal-header">
+          <h3><i class="fas fa-exclamation-triangle"></i> Anomaly Detection</h3>
+          <button class="modal-close" id="anomalyModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="analysis-options">
+            <button id="detect-anomalies-btn" class="analysis-btn primary">
+              <i class="fas fa-search"></i>
+              Detect Anomalies
+            </button>
+          </div>
+
+          <div class="anomaly-results" id="anomaly-results">
+            <!-- Anomaly results will be populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- External JS Libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="https://unpkg.com/leaflet.fullscreen@2.0.0/Control.FullScreen.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.min.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script src="/static/js/map_dashboard.js"></script>
+
+    <script>
+      // Pass Django context to JavaScript
+      window.djangoContext = {
+          totalWaterPoints: {{ total_water_points|default:0 }},
+          totalBoreholes: {{ total_boreholes|default:0 }},
+          totalCounties: {{ total_counties|default:47 }},
+          totalSubcounties: {{ total_subcounties|default:0 }},
+          totalWards: {{ total_wards|default:0 }},
+          waterPointStatuses: {{ water_point_statuses|default:'{}'|safe }},
+          boreholeStatuses: {{ borehole_statuses|default:'{}'|safe }},
+          sourceTypes: {{ source_types|default:'[]'|safe }},
+          yearMin: {{ year_min|default:1900 }},
+          yearMax: {{ year_max|default:2024 }},
+          csrfToken: '{{ csrf_token }}',
+          apiBaseUrl: '/api/'
+      };
+    </script>
+  </body>
+</html>

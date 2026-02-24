@@ -1,0 +1,849 @@
+/* ===== WATER POINTS STYLING - ENHANCED VISIBILITY ===== */
+
+/* ===== WATER POINT MARKER STYLES - CUSTOM SVG-LIKE MARKERS ===== */
+
+/* Base marker styles for all water points */
+.water-point-marker {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+}
+
+/* Functional Water Point - Green Circle with White Outline */
+.functional-marker {
+    background: var(--status-functional);
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    position: relative;
+    animation: popIn 0.3s ease;
+}
+
+.functional-marker::after {
+    content: "✓";
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Non-Functional Water Point - Red Circle with White Outline */
+.nonfunctional-marker {
+    background: var(--status-nonfunctional);
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    animation: popIn 0.3s ease;
+}
+
+.nonfunctional-marker::after {
+    content: "✕";
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Needs Repair Water Point - Orange Circle with White Outline */
+.repair-marker {
+    background: var(--status-repair);
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    animation: popIn 0.3s ease;
+}
+
+.repair-marker::after {
+    content: "!";
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Unknown Water Point - Gray Circle with White Outline */
+.unknown-marker {
+    background: var(--status-unknown);
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    animation: popIn 0.3s ease;
+}
+
+.unknown-marker::after {
+    content: "?";
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== BOREHOLE STYLES - DIAMOND SHAPE ===== */
+
+/* Functional Borehole - Green Diamond */
+.functional-borehole-marker {
+    background: var(--status-functional);
+    width: 28px !important;
+    height: 28px !important;
+    transform: rotate(45deg);
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    animation: popIn 0.3s ease;
+}
+
+.functional-borehole-marker::after {
+    content: "✓";
+    transform: rotate(-45deg);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Non-Functional Borehole - Red Diamond */
+.nonfunctional-borehole-marker {
+    background: var(--status-nonfunctional);
+    width: 28px !important;
+    height: 28px !important;
+    transform: rotate(45deg);
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    animation: popIn 0.3s ease;
+}
+
+.nonfunctional-borehole-marker::after {
+    content: "✕";
+    transform: rotate(-45deg);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Needs Repair Borehole - Orange Diamond */
+.repair-borehole-marker {
+    background: var(--status-repair);
+    width: 28px !important;
+    height: 28px !important;
+    transform: rotate(45deg);
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    animation: popIn 0.3s ease;
+}
+
+.repair-borehole-marker::after {
+    content: "!";
+    transform: rotate(-45deg);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Unknown Borehole - Gray Diamond */
+.unknown-borehole-marker {
+    background: var(--status-unknown);
+    width: 28px !important;
+    height: 28px !important;
+    transform: rotate(45deg);
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    animation: popIn 0.3s ease;
+}
+
+.unknown-borehole-marker::after {
+    content: "?";
+    transform: rotate(-45deg);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== WATER SOURCE TYPE MARKERS ===== */
+
+/* Protected Well - Blue Square */
+.well-marker {
+    background: var(--type-well);
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 6px;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    animation: popIn 0.3s ease;
+}
+
+.well-marker::after {
+    content: "□";
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Spring - Green Triangle */
+.spring-marker {
+    width: 0 !important;
+    height: 0 !important;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-bottom: 24px solid var(--type-spring);
+    position: relative;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+    animation: popIn 0.3s ease;
+}
+
+.spring-marker::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: -4px;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Rainwater Harvesting - Purple Circle with R */
+.rainwater-marker {
+    background: var(--type-rainwater);
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    animation: popIn 0.3s ease;
+}
+
+.rainwater-marker::after {
+    content: "R";
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* ===== LEAFLET CIRCLE MARKER OVERRIDES ===== */
+.leaflet-interactive.circle-marker-functional {
+    fill: var(--status-functional) !important;
+    stroke: white !important;
+    stroke-width: 2 !important;
+    fill-opacity: 0.9 !important;
+}
+
+.leaflet-interactive.circle-marker-nonfunctional {
+    fill: var(--status-nonfunctional) !important;
+    stroke: white !important;
+    stroke-width: 2 !important;
+    fill-opacity: 0.9 !important;
+}
+
+.leaflet-interactive.circle-marker-repair {
+    fill: var(--status-repair) !important;
+    stroke: white !important;
+    stroke-width: 2 !important;
+    fill-opacity: 0.9 !important;
+}
+
+.leaflet-interactive.circle-marker-unknown {
+    fill: var(--status-unknown) !important;
+    stroke: white !important;
+    stroke-width: 2 !important;
+    fill-opacity: 0.9 !important;
+}
+
+/* ===== MARKER INTERACTIONS ===== */
+.water-point-marker:hover,
+.functional-marker:hover,
+.nonfunctional-marker:hover,
+.repair-marker:hover,
+.unknown-marker:hover,
+.functional-borehole-marker:hover,
+.nonfunctional-borehole-marker:hover,
+.repair-borehole-marker:hover,
+.unknown-borehole-marker:hover,
+.well-marker:hover,
+.spring-marker:hover,
+.rainwater-marker:hover {
+    transform: scale(1.3);
+    z-index: 1000 !important;
+    cursor: pointer;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+    transition: all 0.2s ease;
+}
+
+/* Diamond shapes need special handling for hover */
+.functional-borehole-marker:hover,
+.nonfunctional-borehole-marker:hover,
+.repair-borehole-marker:hover,
+.unknown-borehole-marker:hover {
+    transform: rotate(45deg) scale(1.3);
+}
+
+.spring-marker:hover {
+    transform: scale(1.2);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes popIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(39, 174, 96, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+    }
+}
+
+.pulse-marker {
+    animation: pulse 2s infinite;
+}
+
+/* ===== CLUSTER STYLES - ENHANCED ===== */
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 30px;
+    border: 3px solid white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+}
+
+.marker-cluster:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.marker-cluster div {
+    width: 44px;
+    height: 44px;
+    margin-left: 6px;
+    margin-top: 6px;
+    text-align: center;
+    border-radius: 22px;
+    font: 15px var(--font-sans);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border: 2px solid white;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.marker-cluster-small {
+    background-color: rgba(39, 174, 96, 0.8);
+}
+
+.marker-cluster-small div {
+    background-color: var(--status-functional-dark);
+}
+
+.marker-cluster-medium {
+    background-color: rgba(243, 156, 18, 0.8);
+}
+
+.marker-cluster-medium div {
+    background-color: var(--status-repair-dark);
+}
+
+.marker-cluster-large {
+    background-color: rgba(231, 76, 60, 0.8);
+}
+
+.marker-cluster-large div {
+    background-color: var(--status-nonfunctional-dark);
+}
+
+/* ===== POPUP STYLES - ENHANCED ===== */
+.water-point-popup {
+    padding: 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.popup-header {
+    background: linear-gradient(145deg, var(--primary-main), var(--primary-deep));
+    color: white;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.popup-header-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    border: 2px solid white;
+}
+
+.popup-header-title {
+    flex: 1;
+}
+
+.popup-header-title h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.popup-header-title p {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.popup-body {
+    padding: 1.25rem;
+}
+
+.popup-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.popup-row:last-child {
+    border-bottom: none;
+}
+
+.popup-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--neutral-600);
+}
+
+.popup-value {
+    font-size: 0.8125rem;
+    color: var(--neutral-800);
+    font-weight: 500;
+}
+
+.popup-status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.popup-status-badge.functional {
+    background: var(--status-functional-light);
+    color: var(--status-functional-dark);
+}
+
+.popup-status-badge.non-functional {
+    background: var(--status-nonfunctional-light);
+    color: var(--status-nonfunctional-dark);
+}
+
+.popup-status-badge.repair {
+    background: var(--status-repair-light);
+    color: var(--status-repair-dark);
+}
+
+.popup-status-badge.unknown {
+    background: var(--status-unknown-light);
+    color: var(--status-unknown-dark);
+}
+
+.popup-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--neutral-200);
+}
+
+.popup-action-btn {
+    flex: 1;
+    padding: 0.5rem;
+    background: var(--neutral-100);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-sm);
+    color: var(--neutral-700);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.popup-action-btn:hover {
+    background: var(--primary-main);
+    color: white;
+    border-color: var(--primary-main);
+}
+
+/* ===== LEGEND ITEMS ENHANCEMENT ===== */
+.legend-marker-sample {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.legend-marker-sample.diamond {
+    transform: rotate(45deg);
+    border-radius: 4px;
+}
+
+.legend-marker-sample.square {
+    border-radius: 4px;
+}
+
+/* ===== STATS CARDS ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-light);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-icon.water-point {
+    background: linear-gradient(145deg, var(--primary-main), var(--primary-deep));
+}
+
+.stat-icon.borehole {
+    background: linear-gradient(145deg, var(--type-borehole), var(--type-borehole-dark));
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--neutral-800);
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ===== SUMMARY GRID ===== */
+.summary-section {
+    background: linear-gradient(145deg, var(--neutral-50), white);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.summary-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.summary-item.functional {
+    border-left: 4px solid var(--status-functional);
+}
+
+.summary-item.non-functional {
+    border-left: 4px solid var(--status-nonfunctional);
+}
+
+.summary-item.needs-repair {
+    border-left: 4px solid var(--status-repair);
+}
+
+.summary-item.unknown {
+    border-left: 4px solid var(--status-unknown);
+}
+
+.summary-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.summary-item.functional .summary-icon {
+    background: var(--status-functional);
+}
+
+.summary-item.non-functional .summary-icon {
+    background: var(--status-nonfunctional);
+}
+
+.summary-item.needs-repair .summary-icon {
+    background: var(--status-repair);
+}
+
+.summary-item.unknown .summary-icon {
+    background: var(--status-unknown);
+}
+
+.summary-content {
+    flex: 1;
+}
+
+.summary-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--neutral-800);
+    line-height: 1.2;
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ===== DISPLAY OPTIONS ===== */
+.display-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.display-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid transparent;
+}
+
+.display-option:hover {
+    background: var(--neutral-100);
+    border-color: var(--neutral-200);
+}
+
+.display-option.active {
+    background: var(--primary-pale);
+    border-color: var(--primary-main);
+}
+
+.display-option-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-main);
+    font-size: 1.25rem;
+}
+
+.display-option-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--neutral-700);
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .dashboard-sidebar,
+    .top-controls-bar,
+    .legend-container,
+    .info-panel,
+    .mini-stats-panel,
+    .notification {
+        display: none !important;
+    }
+    
+    .map-area {
+        width: 100%;
+        height: 100%;
+    }
+    
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .functional-marker,
+    .nonfunctional-marker,
+    .repair-marker,
+    .unknown-marker {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+    .leaflet-container {
+        background: #1a2b3c !important;
+    }
+    
+    .leaflet-popup-content-wrapper {
+        background: #2d3e4f !important;
+        color: #e5e7eb !important;
+    }
+    
+    .leaflet-popup-tip {
+        background: #2d3e4f !important;
+    }
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+@media (prefers-contrast: high) {
+    .functional-marker,
+    .functional-borehole-marker {
+        border: 4px solid yellow !important;
+    }
+    
+    .nonfunctional-marker,
+    .nonfunctional-borehole-marker {
+        border: 4px solid white !important;
+    }
+}

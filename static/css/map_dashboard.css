@@ -1,0 +1,1527 @@
+/* ===== MODERN WATER POINT MAPPING SYSTEM ===== */
+:root {
+    /* Primary Colors - Sophisticated Blue Theme */
+    --primary-deep: #0a3b5c;
+    --primary-main: #1a5f7a;
+    --primary-light: #2c7da0;
+    --primary-soft: #a9d6e5;
+    --primary-pale: #e2f0f7;
+    
+    /* Secondary Colors - Earth Tones */
+    --secondary-forest: #2d6a4f;
+    --secondary-teal: #1e6091;
+    --secondary-sage: #80b9ad;
+    --secondary-sand: #e9c46a;
+    --secondary-terra: #e76f51;
+    
+    /* Status Colors - Brighter for Better Visibility */
+    --status-functional: #27ae60;
+    --status-functional-dark: #219a52;
+    --status-functional-light: #e8f8f0;
+    --status-nonfunctional: #e74c3c;
+    --status-nonfunctional-dark: #c0392b;
+    --status-nonfunctional-light: #fdedec;
+    --status-repair: #f39c12;
+    --status-repair-dark: #e67e22;
+    --status-repair-light: #fef5e7;
+    --status-unknown: #7f8c8d;
+    --status-unknown-dark: #6c7a7d;
+    --status-unknown-light: #f4f6f7;
+    
+    /* Water Point Type Colors */
+    --type-borehole: #2980b9;
+    --type-borehole-dark: #2471a3;
+    --type-borehole-light: #eaf2f8;
+    --type-well: #16a085;
+    --type-well-dark: #138d75;
+    --type-well-light: #e8f6f3;
+    --type-spring: #27ae60;
+    --type-spring-dark: #229954;
+    --type-spring-light: #eafaf1;
+    --type-rainwater: #8e44ad;
+    --type-rainwater-dark: #7d3c98;
+    --type-rainwater-light: #f4ecf7;
+    
+    /* Neutral Palette */
+    --neutral-50: #fafbfc;
+    --neutral-100: #f0f2f5;
+    --neutral-200: #e5e7eb;
+    --neutral-300: #d1d5db;
+    --neutral-400: #9ca3af;
+    --neutral-500: #6b7280;
+    --neutral-600: #4b5563;
+    --neutral-700: #374151;
+    --neutral-800: #1f2937;
+    --neutral-900: #111827;
+    
+    /* System Colors */
+    --success: #27ae60;
+    --warning: #f39c12;
+    --error: #e74c3c;
+    --info: #3498db;
+    
+    /* Shadows */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.02), 0 4px 8px rgba(0, 0, 0, 0.03);
+    --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.03), 0 8px 16px rgba(0, 0, 0, 0.04);
+    --shadow-inner: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+    
+    /* Border Radius */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-full: 9999px;
+    
+    /* Layout */
+    --sidebar-width: 380px;
+    --header-height: 64px;
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Typography */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ===== RESET & BASE STYLES ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--font-sans);
+    background: linear-gradient(145deg, var(--neutral-100) 0%, var(--neutral-50) 100%);
+    color: var(--neutral-800);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== DASHBOARD CONTAINER ===== */
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.dashboard-sidebar {
+    width: var(--sidebar-width);
+    background: white;
+    border-right: 1px solid var(--neutral-200);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 50;
+    box-shadow: var(--shadow-lg);
+    transition: var(--transition);
+}
+
+.sidebar-header {
+    background: linear-gradient(145deg, var(--primary-deep), var(--primary-main));
+    padding: 1.75rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    opacity: 0.5;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.logo-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    box-shadow: var(--shadow-md);
+    color: white;
+}
+
+.logo-text {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.logo-subtext {
+    font-size: 0.8rem;
+    opacity: 0.85;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+/* ===== SIDEBAR CONTENT ===== */
+.sidebar-content {
+    padding: 1.75rem;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--neutral-300) var(--neutral-100);
+}
+
+.sidebar-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+    background: var(--neutral-100);
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: var(--neutral-300);
+    border-radius: var(--radius-full);
+}
+
+/* Back Button */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--neutral-100);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    color: var(--neutral-700);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    transition: var(--transition);
+    width: fit-content;
+}
+
+.back-button i {
+    font-size: 0.875rem;
+    color: var(--primary-main);
+    transition: var(--transition);
+}
+
+.back-button:hover {
+    background: white;
+    border-color: var(--primary-light);
+    color: var(--primary-deep);
+    transform: translateX(-2px);
+}
+
+.back-button:hover i {
+    transform: translateX(-2px);
+}
+
+/* ===== SECTION CARDS ===== */
+.section-card {
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.section-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--neutral-300);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary-main);
+}
+
+.section-title i {
+    font-size: 0.875rem;
+    color: var(--primary-light);
+}
+
+/* ===== FILTER SECTION ===== */
+.filter-section {
+    background: var(--neutral-50);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    border: 1px solid var(--neutral-200);
+}
+
+.filter-group {
+    margin-bottom: 1.25rem;
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.filter-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--neutral-700);
+    margin-bottom: 0.625rem;
+}
+
+.filter-label i {
+    color: var(--primary-main);
+    font-size: 0.8125rem;
+}
+
+/* ===== SELECT DROPDOWNS ===== */
+.select-dropdown {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: white;
+    border: 1.5px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    color: var(--neutral-800);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231a5f7a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 16px;
+}
+
+.select-dropdown:hover {
+    border-color: var(--primary-light);
+    background-color: white;
+}
+
+.select-dropdown:focus {
+    outline: none;
+    border-color: var(--primary-main);
+    box-shadow: 0 0 0 3px rgba(26, 95, 122, 0.08);
+}
+
+.select-dropdown:disabled {
+    background-color: var(--neutral-100);
+    border-color: var(--neutral-200);
+    color: var(--neutral-500);
+    cursor: not-allowed;
+}
+
+.filter-help-text {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* ===== FILTER ACTIONS ===== */
+.filter-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.filter-action-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 0.5rem;
+    background: white;
+    border: 1.5px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    color: var(--neutral-700);
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filter-action-btn:hover {
+    background: var(--neutral-100);
+    border-color: var(--neutral-300);
+    transform: translateY(-1px);
+}
+
+.filter-action-btn.primary {
+    background: linear-gradient(145deg, var(--primary-main), var(--primary-deep));
+    border-color: var(--primary-deep);
+    color: white;
+}
+
+.filter-action-btn.primary:hover {
+    background: linear-gradient(145deg, var(--primary-deep), var(--primary-main));
+    border-color: var(--primary-deep);
+    box-shadow: var(--shadow-md);
+}
+
+.filter-action-icon {
+    font-size: 1.25rem;
+    color: var(--neutral-600);
+}
+
+.filter-action-btn.primary .filter-action-icon {
+    color: white;
+}
+
+.filter-action-name {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ===== MAP AREA ===== */
+.map-area {
+    flex: 1;
+    position: relative;
+    background: var(--neutral-200);
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    background: var(--neutral-200);
+    z-index: 1;
+}
+
+/* ===== TOP CONTROLS BAR ===== */
+.top-controls-bar {
+    position: absolute;
+    top: 2.0rem;
+    right: 1.5rem;
+    z-index: 1000;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    pointer-events: none;
+}
+
+.top-controls-bar > * {
+    pointer-events: auto;
+}
+
+/* ===== CONTROL DROPDOWNS ===== */
+.control-dropdown {
+    position: relative;
+    min-width: 200px;
+}
+
+.control-dropdown-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    background: white;
+    backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    color: var(--neutral-800);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-lg);
+}
+
+.control-dropdown-btn:hover {
+    background: white;
+    border-color: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+.control-dropdown-btn i:first-child {
+    color: var(--primary-main);
+    margin-right: 0.625rem;
+}
+
+/* ===== CONTROL DROPDOWNS ===== */
+.control-dropdown-content {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 300px;
+    max-height: 500px;
+    overflow-y: auto;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--neutral-200);
+    padding: 1rem;
+    display: none;  /* Hidden by default */
+    z-index: 1001;
+}
+
+/* Add this rule! */
+.control-dropdown-content.show {
+    display: block !important;
+}
+
+.control-dropdown-content.show {
+    display: block;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.control-dropdown-section {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.control-dropdown-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.control-dropdown-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary-main);
+    margin-bottom: 1rem;
+}
+
+.control-dropdown-title i {
+    font-size: 0.875rem;
+}
+
+/* ===== LAYER CONTROLS ===== */
+.layer-controls-dropdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.layer-control-item-dropdown {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: var(--neutral-50);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.layer-control-item-dropdown:hover {
+    background: white;
+    border-color: var(--primary-light);
+    transform: translateX(2px);
+}
+
+.layer-control-item-dropdown.active {
+    background: var(--primary-pale);
+    border-color: var(--primary-main);
+}
+
+.layer-info-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.layer-icon-dropdown {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+}
+
+.layer-text-dropdown {
+    display: flex;
+    flex-direction: column;
+}
+
+.layer-name-dropdown {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--neutral-800);
+}
+
+.layer-count-dropdown {
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+    margin-top: 2px;
+}
+
+/* ===== TOGGLE SWITCH ===== */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--neutral-300);
+    transition: var(--transition);
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: var(--transition);
+    border-radius: 50%;
+    box-shadow: var(--shadow-sm);
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary-main);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+/* ===== MAP TOOLS GRID ===== */
+.map-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.map-tool-btn-dropdown {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 0.5rem;
+    background: var(--neutral-50);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.map-tool-btn-dropdown:hover {
+    background: white;
+    border-color: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.map-tool-btn-dropdown.active {
+    background: var(--primary-pale);
+    border-color: var(--primary-main);
+}
+
+.map-tool-icon-dropdown {
+    font-size: 1.25rem;
+    color: var(--primary-main);
+}
+
+.map-tool-name-dropdown {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--neutral-700);
+}
+
+/* ===== BASEMAP OPTIONS ===== */
+.basemap-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.basemap-option-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid transparent;
+}
+
+.basemap-option-dropdown:hover {
+    background: var(--neutral-100);
+    border-color: var(--neutral-200);
+}
+
+.basemap-option-dropdown.active {
+    background: var(--primary-pale);
+    border-color: var(--primary-main);
+}
+
+.basemap-icon-dropdown {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-main);
+    font-size: 1rem;
+}
+
+.basemap-name-dropdown {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--neutral-700);
+}
+
+/* ===== NAVIGATION CONTROLS ===== */
+.navigation-controls {
+    display: flex;
+    gap: 0.5rem;
+    background: white;
+    padding: 0.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--neutral-200);
+}
+
+.nav-control-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    color: var(--neutral-600);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.nav-control-btn:hover {
+    background: var(--primary-main);
+    color: white;
+    border-color: var(--primary-main);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ===== LEGEND CONTAINER ===== */
+.legend-container {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 300px;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--neutral-200);
+    padding: 1.25rem;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.legend-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--neutral-200);
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 2;
+}
+
+.legend-toggle {
+    background: none;
+    border: none;
+    color: var(--neutral-500);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.legend-toggle:hover {
+    background: var(--neutral-100);
+    color: var(--primary-main);
+}
+
+.legend-content {
+    max-height: 500px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.legend-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.legend-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.legend-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary-main);
+    margin-bottom: 1rem;
+}
+
+.legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.legend-color.square {
+    border-radius: 4px;
+}
+
+.legend-color.diamond {
+    transform: rotate(45deg);
+    border-radius: 4px;
+}
+
+.legend-text {
+    font-size: 0.875rem;
+    color: var(--neutral-700);
+    font-weight: 500;
+    flex: 1;
+}
+
+.legend-count {
+    font-size: 0.75rem;
+    color: var(--neutral-600);
+    font-weight: 600;
+    background: var(--neutral-100);
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-full);
+    min-width: 2.5rem;
+    text-align: center;
+}
+
+/* ===== INFO PANEL ===== */
+.info-panel {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    width: 340px;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--neutral-200);
+    z-index: 1000;
+    display: none;
+    backdrop-filter: blur(10px);
+}
+
+.info-panel.active {
+    display: block;
+    animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.info-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--primary-main);
+}
+
+.info-close {
+    background: none;
+    border: none;
+    color: var(--neutral-500);
+    font-size: 1.125rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.info-close:hover {
+    color: var(--error);
+    background: var(--neutral-100);
+}
+
+.info-content {
+    padding: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--neutral-700);
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+/* ===== MINI STATS PANEL ===== */
+.mini-stats-panel {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    width: 240px;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--neutral-200);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.mini-stats-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+    background: linear-gradient(145deg, var(--primary-main), var(--primary-deep));
+    color: white;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.mini-stats-toggle {
+    margin-left: auto;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.mini-stats-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.mini-stats-content {
+    padding: 1rem;
+}
+
+.mini-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.625rem;
+    font-size: 0.8125rem;
+}
+
+.mini-stat-label {
+    color: var(--neutral-600);
+    font-weight: 500;
+}
+
+.mini-stat-value {
+    font-weight: 700;
+    color: var(--neutral-800);
+}
+
+/* ===== MODAL STYLES ===== */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background: white;
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+    animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.modal-header h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--primary-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--neutral-500);
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    color: var(--error);
+    background: var(--neutral-100);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* ===== NOTIFICATION ===== */
+.notification {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    border-left: 4px solid var(--primary-main);
+    z-index: 2100;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    max-width: 400px;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification-icon {
+    font-size: 1.25rem;
+    color: var(--primary-main);
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 700;
+    color: var(--neutral-800);
+    margin-bottom: 0.25rem;
+}
+
+.notification-message {
+    font-size: 0.875rem;
+    color: var(--neutral-600);
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: var(--neutral-500);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.notification-close:hover {
+    color: var(--error);
+    background: var(--neutral-100);
+}
+
+/* ===== CUSTOM LEAFLET STYLES ===== */
+.leaflet-container {
+    font-family: var(--font-sans);
+    background: #1a2b3c !important;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-xl) !important;
+    border: 1px solid var(--neutral-200) !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.leaflet-popup-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-width: 280px;
+}
+
+.leaflet-popup-tip {
+    background: white !important;
+    border: 1px solid var(--neutral-200) !important;
+}
+
+.leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: var(--neutral-500) !important;
+    font-size: 0.6875rem !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: var(--radius-full) !important;
+    border: 1px solid var(--neutral-200) !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+.leaflet-control-zoom {
+    border: none !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.leaflet-control-zoom a {
+    background: white !important;
+    color: var(--neutral-700) !important;
+    border: 1px solid var(--neutral-200) !important;
+}
+
+.leaflet-control-zoom a:hover {
+    background: var(--neutral-100) !important;
+    color: var(--primary-main) !important;
+}
+
+/* ===== BOUNDARY STYLES ===== */
+.county-boundary {
+    stroke: var(--primary-main) !important;
+    stroke-width: 2 !important;
+    fill: transparent !important;
+    stroke-opacity: 0.8;
+}
+
+.subcounty-boundary {
+    stroke: var(--secondary-teal) !important;
+    stroke-width: 1.5 !important;
+    stroke-dasharray: 5 3 !important;
+    fill: transparent !important;
+    stroke-opacity: 0.7;
+}
+
+.ward-boundary {
+    stroke: var(--secondary-terra) !important;
+    stroke-width: 1 !important;
+    stroke-dasharray: 3 3 !important;
+    fill: transparent !important;
+    stroke-opacity: 0.6;
+}
+
+/* ===== MARKER CLUSTER STYLES ===== */
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 20px;
+    border: 3px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.marker-cluster div {
+    width: 40px;
+    height: 40px;
+    margin-left: 5px;
+    margin-top: 5px;
+    text-align: center;
+    border-radius: 20px;
+    font: 14px var(--font-sans);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border: 2px solid white;
+}
+
+.marker-cluster-small {
+    background-color: rgba(39, 174, 96, 0.7);
+}
+
+.marker-cluster-small div {
+    background-color: var(--status-functional);
+}
+
+.marker-cluster-medium {
+    background-color: rgba(243, 156, 18, 0.7);
+}
+
+.marker-cluster-medium div {
+    background-color: var(--status-repair);
+}
+
+.marker-cluster-large {
+    background-color: rgba(231, 76, 60, 0.7);
+}
+
+.marker-cluster-large div {
+    background-color: var(--status-nonfunctional);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1280px) {
+    :root {
+        --sidebar-width: 340px;
+    }
+}
+
+@media (max-width: 1024px) {
+    :root {
+        --sidebar-width: 320px;
+    }
+    
+    .top-controls-bar {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    
+    .control-dropdown {
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .dashboard-sidebar {
+        width: 100%;
+        height: 50vh;
+        border-right: none;
+        border-bottom: 1px solid var(--neutral-200);
+    }
+    
+    .map-area {
+        height: 50vh;
+    }
+    
+    .top-controls-bar {
+        top: auto;
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .control-dropdown {
+        width: 100%;
+    }
+    
+    .legend-container,
+    .info-panel,
+    .mini-stats-panel {
+        display: none !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar-content {
+        padding: 1.25rem;
+    }
+    
+    .filter-actions {
+        flex-direction: column;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+}
+
+/* ===== URGENT FIXES FOR WATER POINT VISIBILITY ===== */
+
+/* Force all water point markers to be visible */
+.leaflet-marker-icon.water-point-marker,
+.leaflet-marker-icon.functional-marker,
+.leaflet-marker-icon.nonfunctional-marker,
+.leaflet-marker-icon.repair-marker,
+.leaflet-marker-icon.unknown-marker,
+.leaflet-marker-icon.functional-borehole-marker,
+.leaflet-marker-icon.nonfunctional-borehole-marker,
+.leaflet-marker-icon.repair-borehole-marker,
+.leaflet-marker-icon.unknown-borehole-marker,
+.leaflet-marker-icon.well-marker,
+.leaflet-marker-icon.spring-marker,
+.leaflet-marker-icon.rainwater-marker {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1000 !important;
+}
+
+/* Increase marker sizes dramatically */
+.functional-marker,
+.nonfunctional-marker,
+.repair-marker,
+.unknown-marker {
+    width: 32px !important;
+    height: 32px !important;
+    border-width: 4px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Even bigger for boreholes */
+.functional-borehole-marker,
+.nonfunctional-borehole-marker,
+.repair-borehole-marker,
+.unknown-borehole-marker {
+    width: 36px !important;
+    height: 36px !important;
+    border-width: 4px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Fix spring marker */
+.spring-marker {
+    border-left: 18px solid transparent !important;
+    border-right: 18px solid transparent !important;
+    border-bottom: 30px solid var(--type-spring) !important;
+}
+
+/* Add pulse animation to make them more noticeable */
+@keyframes markerPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+
+.water-point-marker {
+    animation: markerPulse 2s infinite;
+}
+
+/* Fix marker text/icon colors */
+.functional-marker::after,
+.nonfunctional-marker::after,
+.repair-marker::after,
+.unknown-marker::after,
+.functional-borehole-marker::after,
+.nonfunctional-borehole-marker::after,
+.repair-borehole-marker::after,
+.unknown-borehole-marker::after,
+.well-marker::after,
+.rainwater-marker::after {
+    color: white !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Fix spring marker inner dot */
+.spring-marker::after {
+    top: 10px !important;
+    left: -5px !important;
+    width: 10px !important;
+    height: 10px !important;
+    background: white !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Force Leaflet markers to show */
+.leaflet-marker-icon {
+    display: block !important;
+}
+
+/* Override any potential hiding */
+.leaflet-container .leaflet-marker-pane img,
+.leaflet-container .leaflet-marker-pane div {
+    display: block !important;
+}
+
+/* Make sure the marker pane is visible */
+.leaflet-marker-pane {
+    z-index: 600 !important;
+}
+
+/* High contrast borders for better visibility */
+.functional-marker,
+.functional-borehole-marker {
+    border: 4px solid #fff !important;
+    outline: 2px solid #000 !important;
+}
+
+.nonfunctional-marker,
+.nonfunctional-borehole-marker {
+    border: 4px solid #fff !important;
+    outline: 2px solid #000 !important;
+}
+
+.repair-marker,
+.repair-borehole-marker {
+    border: 4px solid #fff !important;
+    outline: 2px solid #000 !important;
+}
+
+.unknown-marker,
+.unknown-borehole-marker {
+    border: 4px solid #fff !important;
+    outline: 2px solid #000 !important;
+}
+
+/* Debug outline - REMOVE AFTER FIXING */
+.leaflet-marker-icon {
+    outline: 2px solid red !important;
+}
