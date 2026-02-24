@@ -57,15 +57,13 @@
     />
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/css/map_dashboard.css" />
-    <link rel="stylesheet" href="/static/css/water_points.css" />
-    <link rel="stylesheet" href="/static/css/analysis_modals.css" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/map_dashboard.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/water_points.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/analysis_modals.css' %}" />
 
     {% block extra_css %}
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/map_dashboard.css' %}">
-    <link rel="stylesheet" href="{% static 'css/water_points.css' %}">
-    <link rel="stylesheet" href="{% static 'css/analysis_modals.css' %}">
+    <!-- Additional CSS can go here -->
     {% endblock %}
     <!-- CSRF Token for Django -->
     {% csrf_token %}

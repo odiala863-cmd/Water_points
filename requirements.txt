@@ -1,29 +1,112 @@
-# Core Django
+# ============================================
+# Core Django & Web Framework
+# ============================================
 Django>=5.0,<5.3
-asgiref
-sqlparse
+asgiref>=3.7.0
+sqlparse>=0.4.4
+whitenoise>=6.5.0           # Static file serving
+gunicorn>=21.2.0            # Production WSGI server
 
-# Web server for Render
-gunicorn
-whitenoise
+# ============================================
+# Database & ORM
+# ============================================
+psycopg2-binary>=2.9.9      # PostgreSQL adapter
+dj-database-url>=2.1.0       # Database URL parsing
+django-db-connection-pool>=1.2.0  # Connection pooling
 
-# Database
-psycopg2-binary
-dj-database-url
+# ============================================
+# Caching & Performance
+# ============================================
+redis>=5.0.1                 # Redis cache backend
+django-redis>=5.4.0          # Django Redis cache
+django-cacheops>=7.0.1       # Automatic query caching
 
-# REST API
-djangorestframework
-django-filter
-django-cors-headers
-djangorestframework-gis
+# ============================================
+# REST API Framework
+# ============================================
+djangorestframework>=3.14.0
+djangorestframework-gis>=1.0
+django-filter>=23.5
+django-cors-headers>=4.3.1
+drf-yasg>=1.21.7             # API documentation
+django-rest-knox>=4.2.0      # Token authentication
+cryptography>=41.0.0         # Required for Knox token hashing
 
-# Environment variables
-python-dotenv
+# ============================================
+# Async Task Queue
+# ============================================
+celery>=5.3.4                 # Background tasks
+django-celery-beat>=2.5.0    # Periodic tasks
+django-celery-results>=2.5.0 # Task results
 
-# Scientific stack (safe for Python 3.11/3.12)
-numpy>=2.0,<3.0
-pandas>=2.2,<3.0
-scipy>=1.12,<2.0
+# ============================================
+# Data Processing & Analytics
+# ============================================
+numpy>=2.0.0,<3.0.0          # Scientific computing
+pandas>=2.2.0,<3.0.0         # Data analysis
+scipy>=1.12.0,<2.0.0         # Scientific algorithms
+scikit-learn>=1.4.0          # Machine learning
+statsmodels>=0.14.0          # Statistical modeling
+geopandas>=0.14.0            # Geospatial data
+shapely>=2.0.0               # Geometric operations
 
-# HTTP requests (optional but common)
-requests
+# ============================================
+# Monitoring & Debugging
+# ============================================
+django-debug-toolbar>=4.2.0  # Debug toolbar (development)
+django-silk>=5.0.4           # Profiling
+sentry-sdk>=1.40.0           # Error tracking
+prometheus-client>=0.19.0    # Metrics
+django-prometheus>=2.3.1     # Django Prometheus metrics
+
+# ============================================
+# Security & Authentication
+# ============================================
+django-allauth>=0.57.0       # Authentication
+django-otp>=1.2.0            # Two-factor auth
+pyotp>=2.9.0                 # OTP generation
+python-jose>=3.3.0           # JWT tokens
+bcrypt>=4.0.1                # Password hashing
+cryptography>=41.0.0         # Also used for encryption and security features
+
+# ============================================
+# Admin Interface Enhancements
+# ============================================
+django-admin-interface>=0.26.0  # Modern admin theme
+django-colorfield>=0.9.0        # Color picker for admin
+django-import-export>=3.3.0     # Import/export functionality
+
+# ============================================
+# File Handling & Storage
+# ============================================
+django-storages>=1.14.0      # Cloud storage
+boto3>=1.34.0                # AWS S3
+pillow>=10.2.0               # Image processing
+
+# ============================================
+# Data Export & Import
+# ============================================
+openpyxl>=3.1.2              # Excel export
+xlrd>=2.0.1                  # Excel import
+tablib>=3.5.0                # Data export formats
+
+# ============================================
+# Utilities
+# ============================================
+python-dotenv>=1.0.0         # Environment variables
+requests>=2.31.0             # HTTP requests
+tqdm>=4.66.1                 # Progress bars
+python-dateutil>=2.8.2       # Date utilities
+pytz>=2023.3                 # Timezone handling
+
+# ============================================
+# GIS Dependencies (System - Install via apt/brew)
+# ============================================
+# For Ubuntu/Debian:
+# sudo apt-get install gdal-bin libgdal-dev libgeos-dev libproj-dev spatialite-bin libsqlite3-mod-spatialite
+#
+# For macOS:
+# brew install gdal geos proj spatialite-tools
+#
+# For Windows:
+# Download from: https://www.gisinternals.com/
