@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: water-points
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn Water.wsgi:application"
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "False"
