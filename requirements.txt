@@ -1,24 +1,29 @@
-asgiref==3.11.1
-certifi==2026.1.4
-charset-normalizer==3.4.4
-dj-database-url==3.1.2
-Django==5.2.11
-django-cors-headers==4.9.0
-django-filter==25.2
-djangorestframework==3.16.1
-djangorestframework-gis==1.2.0
-idna==3.11
-numpy==2.3.5
-packaging==26.0
-pandas==2.3.5
-psycopg2-binary==2.9.11
-python-dateutil==2.9.0.post0
-python-dotenv==1.2.1
-pytz==2025.2
-requests==2.32.5
-scipy==1.15.3
-six==1.17.0
-sqlparse==0.5.5
-typing_extensions==4.15.0
-tzdata==2025.3
-urllib3==2.6.3
+# Core Django
+Django>=5.0,<5.3
+asgiref
+sqlparse
+
+# Web server for Render
+gunicorn
+whitenoise
+
+# Database
+psycopg2-binary
+dj-database-url
+
+# REST API
+djangorestframework
+django-filter
+django-cors-headers
+djangorestframework-gis
+
+# Environment variables
+python-dotenv
+
+# Scientific stack (safe for Python 3.11/3.12)
+numpy>=2.0,<3.0
+pandas>=2.2,<3.0
+scipy>=1.12,<2.0
+
+# HTTP requests (optional but common)
+requests
