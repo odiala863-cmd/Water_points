@@ -559,7 +559,7 @@
 
                 <!-- Navigation Tabs -->
                 <div class="nav-tabs">
-                    <a href="{% url 'landing' %}" class="nav-tab {% if request.resolver_match.url_name == 'landing' %}active{% endif %}" data-tab="home">
+                    <a href="#" class="nav-tab {% if request.resolver_match.url_name == 'landing' %}active{% endif %}" data-tab="home">
                         <i class="fas fa-home"></i>
                         <span>Home</span>
                     </a>
@@ -567,7 +567,7 @@
                         <i class="fas fa-map-marked-alt"></i>
                         <span>Map Dashboard</span>
                     </a>
-                    <a href="{% url 'analytics_dashboard' %}" class="nav-tab {% if request.resolver_match.url_name == 'analytics_dashboard' %}active{% endif %}" data-tab="visualizations">
+                    <a href="#" class="nav-tab {% if request.resolver_match.url_name == 'analytics_dashboard' %}active{% endif %}" data-tab="visualizations">
                         <i class="fas fa-chart-line"></i>
                         <span>Analytics</span>
                     </a>

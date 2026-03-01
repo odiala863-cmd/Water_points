@@ -3,8 +3,8 @@ from . import views, landing_view
 
 urlpatterns = [
     # ============= MAIN PAGES =============
-    path('', landing_view.landing_page, name='landing'),
-    path('map/', views.map_dashboard, name='map_dashboard'),
+    path('landing/', landing_view.landing_page, name='landing'),
+    path('', views.map_dashboard, name='map_dashboard'),
     path('analytics/', views.analytics_dashboard, name='analytics_dashboard'),
     
     # ============= CORE ANALYTICS API ENDPOINTS =============

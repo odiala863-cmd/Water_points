@@ -268,16 +268,14 @@ if not USE_PROD_DB:
 # ============================================
 
 # Cache configuration without Redis
+# settings.py
+# Replace the Redis cache with LocMemCache
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'water-points-cache',
-        'TIMEOUT': 60 * 15,  # 15 minutes
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000,
-            'CULL_FREQUENCY': 3,
-        },
-        'KEY_PREFIX': 'water',
+        'LOCATION': 'unique-snowflake',
+        'KEY_PREFIX': 'aquatrack',
+        'TIMEOUT': 300,  # 5 minutes
     }
 }
 
