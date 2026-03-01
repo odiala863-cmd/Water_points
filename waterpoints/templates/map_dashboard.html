@@ -76,7 +76,7 @@
         <div class="nav-wrapper" style="max-width: 1400px; margin: 0 auto; padding: 0 24px;">
             <nav class="navbar" style="display: flex; align-items: center; justify-content: space-between; height: 80px; gap: 40px;">
                 <!-- Logo -->
-                <a href="#" class="nav-logo" id="homeLink" style="display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.3s ease;">
+                <a href="{% url 'landing' %}" class="nav-logo" id="homeLink" style="display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.3s ease;">
                     <div class="logo-icon" style="width: 48px; height: 48px; background: linear-gradient(135deg, #0e9e8f, #1e88e5); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ffffff; box-shadow: 0 4px 15px rgba(46, 189, 176, 0.3);">
                         <i class="fas fa-water"></i>
                     </div>
@@ -88,7 +88,7 @@
 
                 <!-- Navigation Tabs -->
                 <div class="nav-tabs" style="display: flex; align-items: center; gap: 8px; flex: 1;">
-                    <a href="#" class="nav-tab {% if request.resolver_match.url_name == 'landing' %}active{% endif %}" data-tab="home" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; color: {% if request.resolver_match.url_name == 'landing' %}#ffffff{% else %}#94a3b8{% endif %}; text-decoration: none; border-radius: 8px; background: {% if request.resolver_match.url_name == 'landing' %}rgba(46, 189, 176, 0.15){% else %}transparent{% endif %}; transition: all 0.3s ease; font-weight: {% if request.resolver_match.url_name == 'landing' %}600{% else %}500{% endif %};">
+                    <a href="{% url 'landing' %}" class="nav-tab {% if request.resolver_match.url_name == 'landing' %}active{% endif %}" data-tab="home" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; color: {% if request.resolver_match.url_name == 'landing' %}#ffffff{% else %}#94a3b8{% endif %}; text-decoration: none; border-radius: 8px; background: {% if request.resolver_match.url_name == 'landing' %}rgba(46, 189, 176, 0.15){% else %}transparent{% endif %}; transition: all 0.3s ease; font-weight: {% if request.resolver_match.url_name == 'landing' %}600{% else %}500{% endif %};">
                         <i class="fas fa-home" style="font-size: 16px;"></i>
                         <span>Home</span>
                     </a>

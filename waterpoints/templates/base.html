@@ -559,7 +559,7 @@
 
                 <!-- Navigation Tabs -->
                 <div class="nav-tabs">
-                    <a href="#" class="nav-tab {% if request.resolver_match.url_name == 'landing' %}active{% endif %}" data-tab="home">
+                    <a href="{% url 'landing' %}" class="nav-tab {% if request.resolver_match.url_name == 'landing' %}active{% endif %}" data-tab="home">
                         <i class="fas fa-home"></i>
                         <span>Home</span>
                     </a>
